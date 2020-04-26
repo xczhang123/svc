@@ -22,25 +22,37 @@ void cleanup(void *helper) {
 
             for (size_t z = 0; z < commit->size; z++) {
                 file_t *file = &commit->commited_file[z];
-                free(file->file_content);
-                file->file_content = NULL;
-                free(file->file_path);
-                file->file_path = NULL;
+                if (file->file_content != NULL) {
+                    free(file->file_content);
+                    file->file_content = NULL;
+                }
+                if (file->file_path != NULL) {
+                    free(file->file_path);
+                    file->file_path = NULL;   
+                }
                 free(file);
             }
             free(commit);
             // ******** free commit
         }
-        free(branch->name);
-        branch->name = NULL;
-        free(branch->commit);
-        branch->commit = NULL;
+        if (branch->name != NULL) {
+            free(branch->name);
+            branch->name = NULL;
+        }
+        if (branch->commit != NULL) {
+            free(branch->commit);
+            branch->commit = NULL;  
+        }
         free(branch);
     }
-    free(svc->branch);
-    svc->branch = NULL;
-    free(svc->stage);
-    svc->stage = NULL;
+    if (svc->branch != NULL) {
+        free(svc->branch);
+        svc->branch = NULL;
+    }
+    if (svc->stage != NULL) {
+        free(svc->stage);
+        svc->stage = NULL;
+    }
     free(svc);
 }
 
