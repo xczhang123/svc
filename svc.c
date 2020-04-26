@@ -30,9 +30,7 @@ void cleanup(void *helper) {
                     free(file->file_path);
                     file->file_path = NULL;   
                 }
-                free(file);
             }
-            free(commit);
             // ******** free commit
         }
         if (branch->name != NULL) {
@@ -43,7 +41,6 @@ void cleanup(void *helper) {
             free(branch->commit);
             branch->commit = NULL;  
         }
-        free(branch);
     }
     if (svc->branch != NULL) {
         free(svc->branch);
