@@ -94,7 +94,7 @@ void *get_commit(void *helper, char *commit_id) {
 
     //Loop through all the branches
     for (size_t i = 0; i < svc->size; i++) {
-        branch_t *branch = svc->branch[i];
+        branch_t *branch = &svc->branch[i];
         //Loop through all the commits in one branch
         for (size_t j = 0; j < branch->size; j++) {
             commit_t *commit = &branch->commit[j];
@@ -149,7 +149,7 @@ int svc_branch(void *helper, char *branch_name) {
 
     //If branch name already exists: return -2
     for (size_t i = 0; i < ((struct svc*)helper)->size; i++) {
-        char *name = ((struct svc*)helper)->branch[i]->name;
+        char *name = ((struct svc*)helper)->branch[i].name;
         if (strcmp(branch_name, name) == 0) {
             return -2;
         }
@@ -185,11 +185,10 @@ int svc_branch(void *helper, char *branch_name) {
     //Get the SVC system 
     svc_t *svc = (struct svc*)helper;
     //Allocate space for newly created branch
-    svc->branch = calloc(svc->size+1, sizeof(*svc->branch));
-    svc->branch[svc->size] = calloc(1, sizeof(**svc->branch));
+    svc->branch = realloc(svc->branch, (svc->size+1)*sizeof(branch_t));
 
     branch_t *current_branch = svc->head; //Get the current branch
-    branch_t *new_branch = svc->branch[svc->size]; //Get the newly created branch
+    branch_t *new_branch = &svc->branch[svc->size]; //Get the newly created branch
     svc->size++; //svc number of branches increments
 
     //Set field for the new_branch
@@ -212,15 +211,25 @@ char **list_branches(void *helper, int *n_branches) {
 
 //Partially DONE: create branch!!!
 int svc_add(void *helper, char *file_name) {
+
+    svc_t *svc = ((struct svc*)helper);
+
+    //If it is the first time we call svc_add, create branch
+    if (svc->size == 0) {
+        svc->branch = calloc(1, sizeof(branch_t));
+        svc->head = &svc->branch[0];
+        svc->size++;
+        svc->stage = calloc(1, sizeof(stage_t));
+
+        svc->head->name = strdup("master"); //We only set the name of the branch here
+    }
+
     //If the file name is NULL: return -1
     if (file_name == NULL) {
         return -1;
     }
     
     stage_t *stage = ((struct svc*)helper)->stage;
-    if (stage == NULL) {
-        stage = calloc(1, sizeof(stage_t));
-    }
 
     //If the file name is already under version control: return -2
     for (size_t i = 0; i < stage->size; i++) {

@@ -83,7 +83,7 @@ typedef struct branch {
 */
 typedef struct svc {
     branch_t *head;
-    branch_t **branch;
+    branch_t *branch;
     size_t size;
     stage_t *stage;
 } svc_t;
