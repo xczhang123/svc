@@ -64,18 +64,18 @@ char *svc_commit(void *helper, char *message) {
     //We assume there are at least one branch created
     //As a result of the svc_add() method
 
-    branch_t *branch = ((struct svc*)helper)->head; //Get current branch
+    // branch_t *branch = ((struct svc*)helper)->head; //Get current branch
 
-    //If it is the very first commit
-    if (branch->commit == NULL) {
-        branch->commit = calloc(1, sizeof(commit_t)); //Set branch commit field
-        branch->last_commit_index = 0; //Set branch last_commit_index field to be the first commit
-        branch->size++; //Set branch size field
-    }
+    // //If it is the very first commit
+    // if (branch->commit == NULL) {
+    //     branch->commit = calloc(1, sizeof(commit_t)); //Set branch commit field
+    //     branch->last_commit_index = 0; //Set branch last_commit_index field to be the first commit
+    //     branch->size++; //Set branch size field
+    // }
 
-    commit_t *last_commit = &branch->commit[branch->last_commit_index]; //Get last commit(current commit)
+    // commit_t *last_commit = &branch->commit[branch->last_commit_index]; //Get last commit(current commit)
 
-    
+
 
 
 
@@ -257,7 +257,7 @@ int svc_add(void *helper, char *file_name) {
     //Store new_file in the svc system stage field
 
     stage->staged_file = realloc(stage->staged_file, sizeof(file_t)*(stage->size+1));//Realloc staged_file field
-    memcpy(&stage->staged_file[stage->size++], new_file, sizeof(new_file)); //Set the size and staged_file field
+    memcpy(&stage->staged_file[stage->size++], new_file, sizeof(file_t)); //Set the size and staged_file field
     stage->is_commited = 0; //Set the is_commited field to False
 
 
