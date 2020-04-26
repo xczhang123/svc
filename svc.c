@@ -11,7 +11,37 @@ void *svc_init(void) {
 }
 
 void cleanup(void *helper) {
-    // TODO: Implement
+    //Get the SVC system 
+    svc_t *svc = (struct svc*)helper;
+
+    for (size_t i = 0; i < svc->size; i++) {
+        branch_t *branch = &svc->branch[i];
+        
+        for (size_t j = 0; j < branch->size; j++) {
+            commit_t *commit = &branch->commit[i];
+
+            for (size_t z = 0; z < commit->size; z++) {
+                file_t *file = &commit->commited_file[z];
+                free(file->file_content);
+                file->file_content = NULL;
+                free(file->file_path);
+                file->file_path = NULL;
+                free(file);
+            }
+            free(commit);
+            // ******** free commit
+        }
+        free(branch->name);
+        branch->name = NULL;
+        free(branch->commit);
+        branch->commit = NULL;
+        free(branch);
+    }
+    free(svc->branch);
+    svc->branch = NULL;
+    free(svc->stage);
+    svc->stage = NULL;
+    free(svc);
 }
 
 //DONE
