@@ -6,7 +6,7 @@
 //DONE
 void *svc_init(void) {
     // TODO: Implement
-    svc_t *svc = calloc(1, sizeof(svc));
+    svc_t *svc = calloc(1, sizeof(svc_t));
     return svc;
 }
 
