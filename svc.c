@@ -154,19 +154,23 @@ char *svc_commit(void *helper, char *message) {
         } else {//We recalculate the hash value for each file
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
-            
-            fseek(fp, 0, SEEK_END);
-            long file_length = ftell(fp);
-            fseek(fp, 0, SEEK_SET);
-            char file_contents[file_length+1];
-            file_contents[file_length] = '\0';
-            fread(file_contents, sizeof(char), file_length, fp);
-            fclose(fp);
 
-            file->file_content = realloc(file->file_content,sizeof(char)*(file_length+1)); //Realloc file_content field
-            memcpy(file->file_content, file_contents, file_length+1);
-            
-            file->state = DEFAULT;
+            if (file->previous_hash != file->hash) {
+
+                fseek(fp, 0, SEEK_END);
+                long file_length = ftell(fp);
+                fseek(fp, 0, SEEK_SET);
+                char file_contents[file_length+1];
+                file_contents[file_length] = '\0';
+                fread(file_contents, sizeof(char), file_length, fp);
+                fclose(fp);
+
+                file->file_content = realloc(file->file_content,sizeof(char)*(file_length+1)); //Realloc file_content field
+                memcpy(file->file_content, file_contents, file_length+1);
+
+                stage->is_commited = 0; //As long as we found one change, it's atomic
+                file->state = CHANGED;
+            }
         }
     }
 
@@ -438,6 +442,7 @@ char **list_branches(void *helper, int *n_branches) {
 int svc_add(void *helper, char *file_name) {
 
     svc_t *svc = ((struct svc*)helper);
+    branch_t *branch = svc->head;
 
     //If the file name is NULL: return -1
     if (file_name == NULL) {
@@ -482,15 +487,38 @@ int svc_add(void *helper, char *file_name) {
     //Store new_file in the svc system stage field
     file_t_dyn_array_add(stage->tracked_file, new_file);
 
+    //There are some uncommitted changes (addition of one)
+    //If it is the first commit
+    if (branch->commit->size == 0) {
+        if (stage->tracked_file->size != 0) {
+            stage->is_commited = 0;
+            new_file->state = ADDED;
+        } else {
+            stage->is_commited = 1;//Set it back to normal
+        }
+    } 
+    else { //Normal condition
+        commit_t *last_commit =  commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index-1);
+        if (stage->tracked_file->size != last_commit->commited_file->size) {
+            stage->is_commited = 0; 
+            new_file->state = ADDED;
+        } else {
+            stage->is_commited = 1;//Set it back to normal
+        }
+    }
+
     free(new_file->file_path);
     free(new_file->file_content);
     free(new_file);
-    stage->is_commited = 0; //There are some uncommitted changes
     return hash_file(helper, file_name); //return hash_value
 }
 
 //DONE
 int svc_rm(void *helper, char *file_name) {
+
+    svc_t *svc = ((struct svc*)helper);
+    branch_t *branch = svc->head;
+
     //If the file name is NULL: return -1
     if (file_name == NULL) {
         return -1;
@@ -522,7 +550,22 @@ int svc_rm(void *helper, char *file_name) {
 
     //After we have successfully deleted the file
 
-    stage->is_commited = 0; //There are some uncommitted changes
+    //There are some uncommitted changes (addition of one)
+    if (branch->commit->size == 0) {
+        if (stage->tracked_file->size != 0) {
+            stage->is_commited = 0;
+        } else {
+            stage->is_commited = 1;//Set it back to normal
+        }
+    } 
+    else { //Normal condition
+        commit_t *last_commit =  commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index-1);
+        if (stage->tracked_file->size != last_commit->commited_file->size) {
+            stage->is_commited = 0; 
+        } else {
+            stage->is_commited = 1;//Set it back to normal
+        }
+    }
     return file_to_be_deleted_hash;
 }
 

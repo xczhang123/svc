@@ -41,7 +41,7 @@ int test_add_branch() {
 
     svc_add(helper, "test1.txt");
 
-    svc_commit(helper, "first");
+    svc_rm(helper, "test1.txt");
 
     int ret1 = svc_branch(helper, "test1");
 
