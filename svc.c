@@ -32,13 +32,17 @@ void cleanup(void *helper) {
         branch->name = NULL;
 
         commit_t_dyn_array_free(branch->commit);
+        branch->commit = NULL;
     }
     free(svc->branch);
     svc->branch = NULL;
 
     file_t_dyn_array_free(svc->stage->tracked_file);
+    svc->stage->tracked_file = NULL;
+    
     free(svc->stage);
     svc->stage = NULL;
+    
     free(svc);
 }
 
@@ -158,7 +162,7 @@ char *svc_commit(void *helper, char *message) {
             fread(file_contents, sizeof(char), file_length, fp);
             fclose(fp);
 
-            file->file_content = malloc(sizeof(char)*(file_length+1)); //Realloc file_content field
+            file->file_content = realloc(file->file_content,sizeof(char)*(file_length+1)); //Realloc file_content field
             memcpy(file->file_content, file_contents, file_length+1);
             
             file->state = DEFAULT;
@@ -167,7 +171,7 @@ char *svc_commit(void *helper, char *message) {
 
     //We are guaranteed we have updated all files
 
-    // //Special case: when it is the first commit
+    //Special case: when it is the first commit
     if (branch->commit->size == 0) {
         //Mark all files as ADDED
         for (int i = 0; i < stage->tracked_file->size; i++) {
@@ -179,9 +183,11 @@ char *svc_commit(void *helper, char *message) {
         commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //Get the last commit
         
         set_commit_id(commit);
+
+        return commit->commit_id;
         
     }
-    
+
     //     commit_t_dyn_array_add(branch->commit, stage, message, 0);
 
         //Set hash and value
@@ -262,8 +268,8 @@ char *svc_commit(void *helper, char *message) {
 
 
 
-    stage->is_commited = 1; //There are no uncommitted changes
-    return NULL;
+    // stage->is_commited = 1; //There are no uncommitted changes
+    // return ;
 }
 
 //DONE
@@ -463,6 +469,9 @@ int svc_add(void *helper, char *file_name) {
     //Store new_file in the svc system stage field
     file_t_dyn_array_add(stage->tracked_file, new_file);
 
+    free(new_file->file_path);
+    free(new_file->file_content);
+    free(new_file);
     stage->is_commited = 0; //There are some uncommitted changes
     return hash_file(helper, file_name); //return hash_value
 }

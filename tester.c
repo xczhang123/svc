@@ -1,16 +1,62 @@
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 #include "svc.h"
 
-int main(int argc, char **argv) {
+typedef struct command command_t;
+
+struct command {
+	char* str;
+	int (*exe)();
+};
+
+int test_first_commit() {
     void *helper = svc_init();
-    
-    // TODO: write your own tests here
-    // Hint: you can use assert(EXPRESSION) if you want
-    // e.g.  assert((2 + 3) == 5);
+
+    assert(svc_add(helper, "test1.txt") > 0);
+    assert(svc_add(helper, "test2.txt") > 0);
+
+    struct file_t_dyn_array *tracked_files = ((struct svc*)helper)->stage->tracked_file;
+
+    assert(tracked_files->size == 2);
+    assert(file_t_dyn_array_get(tracked_files,0)->file_path != NULL);
+    assert(file_t_dyn_array_get(tracked_files,0)->file_content != NULL);
+
+    char *commit_id = svc_commit(helper, "first commit");
+
+    printf("%s\n", commit_id);
 
     cleanup(helper);
+    
     
     return 0;
 }
 
+command_t tests[] = {
+   {"test_first_commit", &test_first_commit}
+};
+
+
+int main(int argc, char** argv) {
+  int test_n = sizeof(tests) / sizeof(command_t);
+  if(argc >= 2) {
+		for(int i = 0; i < test_n; i++) {
+			if(strcmp(argv[1], tests[i].str) == 0) {
+				if(tests[i].exe()) {
+				  fprintf(stdout, "%s Passed\n", tests[i].str);
+				} else {
+				  fprintf(stdout, "%s Failed\n", tests[i].str);
+				}
+			}
+		}
+        if (strcmp(argv[1], "all") == 0) {
+            for(int i = 0; i < test_n; i++) {
+				if(tests[i].exe()) {
+				  fprintf(stdout, "%s Passed\n", tests[i].str);
+				} else {
+				  fprintf(stdout, "%s Failed\n", tests[i].str);
+				}
+            }
+        }
+	}
+}

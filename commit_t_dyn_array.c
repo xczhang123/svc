@@ -28,11 +28,12 @@ void commit_t_dyn_array_add(struct commit_t_dyn_array *dyn, stage_t *stage, char
 
     dyn->commit[dyn->size] = malloc(sizeof(commit_t));
     dyn->commit[dyn->size]->message = strdup(message);
-    file_t_dyn_array_init(dyn->commit[dyn->size]->commited_file);
+    dyn->commit[dyn->size]->commited_file = file_t_dyn_array_init(dyn->commit[dyn->size]->commited_file);
     for (int i = 0; i < stage->tracked_file->size; i++) {
-            file_t_dyn_array_add(dyn->commit[dyn->size]->commited_file, 
+        file_t_dyn_array_add(dyn->commit[dyn->size]->commited_file, 
                                     file_t_dyn_array_get(stage->tracked_file, i));
     }
+
     dyn->commit[dyn->size]->n_prev = n_prev;
     if (prev[0] != NULL) {
         dyn->commit[dyn->size]->prev[0] = malloc(sizeof(commit_t));
