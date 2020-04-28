@@ -24,16 +24,46 @@ int test_first_commit() {
 
     char *commit_id = svc_commit(helper, "first commit");
 
-    printf("%s\n", commit_id);
+    // printf("%s\n", commit_id);
 
     cleanup(helper);
     
     
-    return 0;
+    return 1;
 }
 
+int test_add_branch() {
+    void *helper = svc_init();
+
+    svc_t *svc = ((struct svc*)helper);
+
+    assert(svc->size == 1);
+
+    int ret1 = svc_branch(helper, "test1");
+
+    assert(ret1 == 0);
+    assert(svc->size == 2);
+
+    int ret2 = svc_branch(helper, "test2");
+
+    assert(ret2 == 0);
+    assert(svc->size == 3);
+
+    int n_branch;
+    char **branch_names = list_branches(helper, &n_branch);
+    assert (n_branch == 3);
+
+    free(branch_names);
+    cleanup(helper);
+
+    return 1;
+}
+
+
+
 command_t tests[] = {
-   {"test_first_commit", &test_first_commit}
+   {"test_first_commit", &test_first_commit},
+   {"test_add_branch", &test_add_branch}
 };
 
 

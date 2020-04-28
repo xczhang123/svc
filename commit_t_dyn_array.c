@@ -54,6 +54,38 @@ void commit_t_dyn_array_add(struct commit_t_dyn_array *dyn, stage_t *stage, char
 
 }
 
+void commit_t_dyn_array_add_commit(struct commit_t_dyn_array *dyn, commit_t *commit) {
+    if (dyn->capacity == dyn->size) {
+        commit_t_dyn_array_resize(dyn);
+    }
+
+    dyn->commit[dyn->size] = malloc(sizeof(commit_t));
+
+    dyn->commit[dyn->size]->message = strdup(commit->message);
+    dyn->commit[dyn->size]->commited_file = file_t_dyn_array_init(dyn->commit[dyn->size]->commited_file);
+    for (int i = 0; i < commit->commited_file->size; i++) {
+        file_t_dyn_array_add(dyn->commit[dyn->size]->commited_file, 
+                                    file_t_dyn_array_get(commit->commited_file, i));
+    }
+
+    dyn->commit[dyn->size]->n_prev = commit->n_prev;
+    if (commit->prev[0] != NULL) {
+        dyn->commit[dyn->size]->prev[0] = malloc(sizeof(commit_t));
+        memcpy(dyn->commit[dyn->size]->prev[0], commit->prev[0], sizeof(commit_t));
+    } else if (commit->prev[0] != NULL && commit->prev[1] != NULL) {
+        dyn->commit[dyn->size]->prev[0] = malloc(sizeof(commit_t));
+        memcpy(dyn->commit[dyn->size]->prev[0], commit->prev[0], sizeof(commit_t));
+        dyn->commit[dyn->size]->prev[1] = malloc(sizeof(commit_t));
+        memcpy(dyn->commit[dyn->size]->prev[1], commit->prev[1], sizeof(commit_t));
+    } else { //Both are NULL;
+        dyn->commit[dyn->size]->prev[0] = NULL;
+        dyn->commit[dyn->size]->prev[1] = NULL;
+    }
+    
+    dyn->size++;
+    dyn->last_commit_index = dyn->size-1;
+}
+
 commit_t* commit_t_dyn_array_get(struct commit_t_dyn_array *dyn, int index) {
     if (index < 0 || index >= dyn->size) {
         return NULL;

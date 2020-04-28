@@ -77,6 +77,8 @@ struct commit_t_dyn_array* commit_t_dyn_array_init();
 
 void commit_t_dyn_array_add(struct commit_t_dyn_array *dyn, stage_t *stage, char *message, int n_prev, commit_t *prev[2]);
 
+void commit_t_dyn_array_add_commit(struct commit_t_dyn_array *dyn, commit_t *commit);
+
 commit_t* commit_t_dyn_array_get(struct commit_t_dyn_array *dyn, int index);
 
 void commit_t_dyn_array_free(struct commit_t_dyn_array *dyn);

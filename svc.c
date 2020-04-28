@@ -13,6 +13,7 @@ void *svc_init(void) {
 
     stage_t *stage = svc->stage;
     stage->tracked_file = file_t_dyn_array_init();
+    stage->is_commited = 1; //No change has been made
 
     branch_t *branch = svc->head;
     branch->commit = commit_t_dyn_array_init();
@@ -364,11 +365,16 @@ int svc_branch(void *helper, char *branch_name) {
 
     //If branch name already exists: return -2
     for (int i = 0; i < ((struct svc*)helper)->size; i++) {
+        // printf("%p\n",((struct svc*)helper)->branch[i]);
         char *name = ((struct svc*)helper)->branch[i].name;
         if (strcmp(branch_name, name) == 0) {
             return -2;
         }
+
+        // puts(name);
     }
+
+    // printf("After this %s\n", branch_name);
 
     //If there are uncommitted changes: return -3
     if (((struct svc*)helper)->stage->is_commited == 0) {
@@ -383,14 +389,18 @@ int svc_branch(void *helper, char *branch_name) {
     svc->branch = realloc(svc->branch, (svc->size+1)*sizeof(branch_t));
 
     branch_t *current_branch = svc->head; //Get the current branch
-    branch_t *new_branch = malloc(sizeof(*current_branch)); 
-
-    //Copy everything from the current_branch except that we change the name field
-    memcpy(new_branch, current_branch, sizeof(*current_branch));
-    new_branch->name = strdup(branch_name); // Set the name field
+    branch_t new_branch = {0};
+    new_branch.commit = commit_t_dyn_array_init();
     
+    //Copy everything from the current_branch except the name field
+    for (int i = 0; i < current_branch->commit->size; i++) {
+        commit_t_dyn_array_add_commit(new_branch.commit, 
+                commit_t_dyn_array_get(current_branch->commit, i));
+    }
+    new_branch.name = strdup(branch_name); // Set the name field
+
     svc->size++; //svc number of branches increments
-    svc->head = new_branch;
+    svc->branch[svc->size-1] = new_branch;
 
     return 0;
 }
