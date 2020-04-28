@@ -218,7 +218,6 @@ char *svc_commit(void *helper, char *message) {
         commit_t_dyn_array_add(branch->commit, stage, message, 0, prev);
 
         commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //Get the last commit
-        
         set_commit_id(commit);
 
         stage->not_changed = 1;
@@ -226,7 +225,9 @@ char *svc_commit(void *helper, char *message) {
         return commit->commit_id;
     }
 
+    //Normal case
     commit_t *last_commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index);
+
     commit_t *prev[2] = {last_commit, NULL};
 
     stage_t previous = {0}; //temporary stage object to store files in previous commit
@@ -251,6 +252,7 @@ char *svc_commit(void *helper, char *message) {
                     new_file->previous_hash = new_file->hash;
                     new_file->hash = tracked_file->hash;
                     found = 1;
+                    break;
                 }
             }
         }
@@ -280,6 +282,7 @@ char *svc_commit(void *helper, char *message) {
     }
 
     set_commit_id(commit);
+    stage->not_changed = 1;
 
     return commit->commit_id;
 }
@@ -458,7 +461,32 @@ int svc_branch(void *helper, char *branch_name) {
 }
 
 int svc_checkout(void *helper, char *branch_name) {
-    // TODO: Implement
+    if (branch_name == NULL) {
+        return -1;
+    }
+
+    svc_t *svc = ((struct svc*)helper);
+
+    int found = 0;
+    int index = -1;
+    for (int i = 0; i < svc->size; i++) {
+        if (strcmp(svc->branch[i]->name, branch_name) == 0) {
+            found = 1;
+            index = i;
+            break;
+        }
+    }
+    
+    if (!found) {
+        return -1;
+    }
+
+    //If there are uncommitted changes
+    if (svc->stage->not_changed == 0) {
+        return -2;
+    }
+
+    svc->head = svc->branch[index];
     return 0;
 }
 
