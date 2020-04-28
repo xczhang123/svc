@@ -224,11 +224,11 @@ char *svc_commit(void *helper, char *message) {
         
     }
 
-    commit_t *last_commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index);
-    commit_t *prev[2] = {last_commit, NULL};
-    commit_t_dyn_array_add(branch->commit, stage, message, 1, prev); //Add one new commit
+    // commit_t *last_commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index);
+    // commit_t *prev[2] = {last_commit, NULL};
+    // commit_t_dyn_array_add(branch->commit, stage, message, 1, prev); //Add one new commit
 
-    commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->size);
+    // commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->size);
 
     //     commit_t_dyn_array_add(branch->commit, stage, message, 0);
 
