@@ -487,7 +487,7 @@ int svc_checkout(void *helper, char *branch_name) {
     // }
 
     // svc->head = svc->branch[index];
-    // return 0;
+    return 0;
 }
 
 //DONE
