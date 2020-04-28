@@ -6,8 +6,9 @@
 //DONE
 void *svc_init(void) {
     svc_t *svc = calloc(1, sizeof(svc_t));
-    svc->branch = calloc(1, sizeof(branch_t));
-    svc->head = &svc->branch[0];
+    svc->branch = calloc(1, sizeof(branch_t*));
+    svc->branch[0] = calloc(1, sizeof(branch_t));
+    svc->head = svc->branch[0];
     svc->size++;
     svc->stage = calloc(1, sizeof(stage_t));
 
@@ -28,12 +29,15 @@ void cleanup(void *helper) {
     svc_t *svc = (struct svc*)helper;
 
     for (int i = 0; i < svc->size; i++) {
-        branch_t *branch = &svc->branch[i];
+        branch_t *branch = svc->branch[i];
+
         free(branch->name);
         branch->name = NULL;
 
         commit_t_dyn_array_free(branch->commit);
         branch->commit = NULL;
+
+        free(branch);
     }
     free(svc->branch);
     svc->branch = NULL;
@@ -292,7 +296,7 @@ void *get_commit(void *helper, char *commit_id) {
 
     //Loop through all the branches
     for (int i = 0; i < svc->size; i++) {
-        branch_t *branch = &svc->branch[i];
+        branch_t *branch = svc->branch[i];
         //Loop through all the commits in one branch
         for (int j = 0; j < branch->commit->size; j++) {
             commit_t *commit = commit_t_dyn_array_get(branch->commit, j);
@@ -372,7 +376,7 @@ int svc_branch(void *helper, char *branch_name) {
     //If branch name already exists: return -2
     for (int i = 0; i < ((struct svc*)helper)->size; i++) {
         // printf("%p\n",((struct svc*)helper)->branch[i]);
-        char *name = ((struct svc*)helper)->branch[i].name;
+        char *name = ((struct svc*)helper)->branch[i]->name;
         if (strcmp(branch_name, name) == 0) {
             return -2;
         }
@@ -392,18 +396,21 @@ int svc_branch(void *helper, char *branch_name) {
     //Get the SVC system 
     svc_t *svc = (struct svc*)helper;
     //Allocate space for newly created branch
+    // printf("Before %p\n", svc->branch);
+
     svc->branch = realloc(svc->branch, (svc->size+1)*sizeof(branch_t));
+    // printf("After %p\n", svc->branch[1]);
 
     branch_t *current_branch = svc->head; //Get the current branch
-    branch_t new_branch = {0};
-    new_branch.commit = commit_t_dyn_array_init();
+    branch_t *new_branch = malloc(sizeof(branch_t));
+    new_branch->commit = commit_t_dyn_array_init();
     
     //Copy everything from the current_branch except the name field
     for (int i = 0; i < current_branch->commit->size; i++) {
-        commit_t_dyn_array_add_commit(new_branch.commit, 
+        commit_t_dyn_array_add_commit(new_branch->commit, 
                 commit_t_dyn_array_get(current_branch->commit, i));
     }
-    new_branch.name = strdup(branch_name); // Set the name field
+    new_branch->name = strdup(branch_name); // Set the name field
 
     svc->size++; //svc number of branches increments
     svc->branch[svc->size-1] = new_branch;
@@ -431,7 +438,7 @@ char **list_branches(void *helper, int *n_branches) {
     char **branch_names = malloc(sizeof(char*)*n);
     
     for (int i = 0; i < n; i++) {
-        branch_t *branch = &svc->branch[i];
+        branch_t *branch = svc->branch[i];
         printf("%s\n", branch->name);
         branch_names[i] = branch->name;
     }
