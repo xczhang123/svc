@@ -112,7 +112,7 @@ void set_commit_id(commit_t *commit) {
 
             // printf("name1: %s, name2: %s %d\n",name1,name2,strcmp(name1, name2));
 
-            if (strcmp(name1, name2) < 0) {
+            if (strcmp(name1, name2) > 0) {
 
                 file_t *temp = malloc(sizeof(file_t));
 
@@ -224,7 +224,7 @@ char *svc_commit(void *helper, char *message) {
     stage_t previous = {0}; //temporary stage object to store files in previous commit
     previous.tracked_file = last_commit->commited_file;
 
-    commit_t_dyn_array_add(branch->commit, &previous, message, 1, prev); //Add one new commit
+    commit_t_dyn_array_add(branch->commit, &previous, message, 1, prev); //Add one new commit (add all files in previous commit)
 
     commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //get current commit
 

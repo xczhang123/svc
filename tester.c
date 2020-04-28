@@ -91,12 +91,24 @@ int example1() {
     return 1;
 }
 
+int example2() {
+
+    void *helper = svc_init();
+
+    assert(svc_add(helper, "COMP2017/svc.h") == 5007);
+    assert(svc_add(helper, "COMP2017/svc.c") == 5217);
+    printf("%s\n", svc_commit(helper, "Initial commit"));
+    // assert(strcmp(svc_commit(helper, "Initail commit"), "7b3e30") == 0);
+    cleanup(helper);
+}
+
 
 
 command_t tests[] = {
    {"test_first_commit", &test_first_commit},
    {"test_add_branch", &test_add_branch},
-   {"example1", &example1}
+   {"example1", &example1},
+   {"example2", &example2}
 };
 
 
