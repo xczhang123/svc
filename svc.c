@@ -269,7 +269,7 @@ char *svc_commit(void *helper, char *message) {
 
 
 
-    // stage->is_commited = 1; //There are no uncommitted changes
+    stage->is_commited = 1; //There are no uncommitted changes
     // return ;
     return 0;
 }
