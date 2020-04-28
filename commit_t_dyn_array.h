@@ -70,7 +70,6 @@ typedef struct svc {
     stage_t *stage;
 } svc_t;
 
-
 void commit_t_dyn_array_resize(struct commit_t_dyn_array *d);
 
 struct commit_t_dyn_array* commit_t_dyn_array_init();

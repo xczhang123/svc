@@ -25,11 +25,8 @@ void file_t_dyn_array_add(struct file_t_dyn_array *dyn, file_t *file) {
         file_t_dyn_array_resize(dyn);
     }
     dyn->file[dyn->size] = malloc(sizeof(*file));
-    dyn->file[dyn->size]->file_content = malloc(strlen(file->file_content)+1);
-    dyn->file[dyn->size]->file_path = malloc(strlen(file->file_path)+1);
-    
-    memcpy(dyn->file[dyn->size]->file_content, file->file_content, strlen(file->file_content)+1);
-    memcpy(dyn->file[dyn->size]->file_path, file->file_path, strlen(file->file_path)+1);
+    dyn->file[dyn->size]->file_content = strdup(file->file_content);
+    dyn->file[dyn->size]->file_path = strdup(file->file_path);
 
     dyn->file[dyn->size]->hash = file->hash;
     dyn->file[dyn->size]->previous_hash = file->previous_hash;
