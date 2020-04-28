@@ -417,7 +417,7 @@ char **list_branches(void *helper, int *n_branches) {
     for (int i = 0; i < n; i++) {
         branch_t *branch = &svc->branch[i];
         printf("%s\n", branch->name);
-        branch_names[i] = strdup(branch->name);
+        branch_names[i] = branch->name;
     }
     return branch_names;
 }
