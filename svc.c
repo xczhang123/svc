@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "svc.h"
 
 //DONE
@@ -107,10 +108,15 @@ void set_commit_id(commit_t *commit) {
             file_t *file1 = file_t_dyn_array_get(commit->commited_file, j);
             file_t *file2 = file_t_dyn_array_get(commit->commited_file, j+1);
 
-            char *name1 = file1->file_path;
-            char *name2 = file2->file_path;
-
-            // printf("name1: %s, name2: %s %d\n",name1,name2,strcmp(name1, name2));
+            char *name1 = strdup(file1->file_path);
+            for (size_t i = 0; i < strlen(name1); i++) {
+                name1[i] = tolower(name1[i]);
+            }
+            char *name2 = strdup(file2->file_path);
+            for (size_t i = 0; i < strlen(name2); i++) {
+                name2[i] = tolower(name2[i]);
+            }
+            //printf("name1: %s, name2: %s %d\n",name1,name2,strcmp(name1, name2));
 
             if (strcmp(name1, name2) > 0) {
 
@@ -123,6 +129,8 @@ void set_commit_id(commit_t *commit) {
                 free(temp);
 
             }
+            free(name1);
+            free(name2);
         }
     }
 
@@ -325,10 +333,10 @@ char **get_prev_commits(void *helper, void *commit, int *n_prev) {
     struct commit **prev = ((struct commit*)commit)->prev; //previous commits
 
     if (*n_prev == 1) {
-        commit_id[0] = strdup(prev[0]->commit_id);
+        commit_id[0] = prev[0]->commit_id;
     } else { //*n_prev == 2
-        commit_id[0] = strdup(prev[0]->commit_id);
-        commit_id[1] = strdup(prev[1]->commit_id);
+        commit_id[0] = prev[0]->commit_id;
+        commit_id[1] = prev[1]->commit_id;
     }
     
     return commit_id;
