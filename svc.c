@@ -14,7 +14,7 @@ void *svc_init(void) {
 
     stage_t *stage = svc->stage;
     stage->tracked_file = file_t_dyn_array_init();
-    stage->is_commited = 1; //No change has been made
+    stage->is_commited = 0;
 
     branch_t *branch = svc->head;
     branch->commit = commit_t_dyn_array_init();
@@ -147,7 +147,14 @@ char *svc_commit(void *helper, char *message) {
     stage_t *stage = (((struct svc*)helper)->stage);
     branch_t *branch = ((struct svc*)helper)->head;
 
+    if (!stage->is_commited) {
+        return NULL;
+    }
+
     //First we automatically update the state of the tracked files
+    //Up till now, add files have been marked ADDED
+    //Some of them will be changed to CHANGED and some files will be removed
+    //We will find REMOVED files later
     for (int i = 0; i < stage->tracked_file->size; i++) {
         file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
         FILE *fp;
@@ -173,6 +180,7 @@ char *svc_commit(void *helper, char *message) {
                 memcpy(file->file_content, file_contents, file_length+1);
 
                 stage->is_commited = 0; //As long as we found one change, it's atomic
+
                 file->state = CHANGED;
             }
         }
@@ -182,7 +190,7 @@ char *svc_commit(void *helper, char *message) {
 
     //Special case: when it is the first commit
     if (branch->commit->size == 0) {
-        //Mark all files as ADDED
+        //Forcefully mark all files as ADDED
         for (int i = 0; i < stage->tracked_file->size; i++) {
             file_t_dyn_array_get(stage->tracked_file, i)->state = ADDED;
         }
@@ -484,7 +492,7 @@ int svc_add(void *helper, char *file_name) {
     new_file->file_path = strdup(file_name); //Set file_path field
     new_file->hash = hash_file(helper, file_name); //Set hash field
     new_file->previous_hash = new_file->hash; //Set previous hash
-    new_file->state = DEFAULT; //Set state field
+    new_file->state = ADDED; //Set state field
 
     //Store new_file in the svc system stage field
     file_t_dyn_array_add(stage->tracked_file, new_file);
@@ -495,7 +503,6 @@ int svc_add(void *helper, char *file_name) {
     if (branch->commit->size == 0) {
         if (stage->tracked_file->size != 0) {
             stage->is_commited = 0;
-            new_file->state = ADDED;
         } else {
             stage->is_commited = 1;//Set it back to normal
         }
@@ -506,14 +513,12 @@ int svc_add(void *helper, char *file_name) {
         if (last_commit == NULL) {
             if (stage->tracked_file->size != commit->commited_file->size) {
                 stage->is_commited = 0;
-                new_file->state = ADDED;
             } else {
                 stage->is_commited = 1; // Set it back to normal
             }
         } else {
             if (stage->tracked_file->size != last_commit->commited_file->size) {
                 stage->is_commited = 0; 
-                new_file->state = ADDED;
             } else {
                 stage->is_commited = 1;//Set it back to normal
             }
