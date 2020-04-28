@@ -14,7 +14,7 @@ struct commit_t_dyn_array* commit_t_dyn_array_init() {
     struct commit_t_dyn_array *d = malloc(sizeof(struct commit_t_dyn_array));
     d->capacity = COMMIT_T_DYN_ARRAY_DEF_CAPACITY;
     d->size = 0;
-    d->last_commit_index = d->size;
+    d->last_commit_index = d->size-1;
     d->commit = calloc(d->capacity, sizeof(*(d->commit)));
 
     return d;

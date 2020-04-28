@@ -178,6 +178,7 @@ char *svc_commit(void *helper, char *message) {
             //User has manually deleted the file from the file system
             file_t_dyn_array_delete_index(stage->tracked_file, i);
             i--;
+            stage->not_changed = 0;
         } else {//We recalculate the hash value for each file
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
@@ -209,7 +210,7 @@ char *svc_commit(void *helper, char *message) {
     //We are guaranteed we have updated all files
 
     //Special case: when it is the first commit
-    if (branch->commit->size == 0) {
+    if (branch->commit->last_commit_index == -1) {
         //Forcefully mark all files as ADDED
         for (int i = 0; i < stage->tracked_file->size; i++) {
             file_t_dyn_array_get(stage->tracked_file, i)->state = ADDED;
@@ -461,32 +462,32 @@ int svc_branch(void *helper, char *branch_name) {
 }
 
 int svc_checkout(void *helper, char *branch_name) {
-    // if (branch_name == NULL) {
-    //     return -1;
-    // }
+    if (branch_name == NULL) {
+        return -1;
+    }
 
-    // svc_t *svc = ((struct svc*)helper);
+    svc_t *svc = ((struct svc*)helper);
 
-    // int found = 0;
-    // int index = -1;
-    // for (int i = 0; i < svc->size; i++) {
-    //     if (strcmp(svc->branch[i]->name, branch_name) == 0) {
-    //         found = 1;
-    //         index = i;
-    //         break;
-    //     }
-    // }
+    int found = 0;
+    int index = -1;
+    for (int i = 0; i < svc->size; i++) {
+        if (strcmp(svc->branch[i]->name, branch_name) == 0) {
+            found = 1;
+            index = i;
+            break;
+        }
+    }
     
-    // if (!found) {
-    //     return -1;
-    // }
+    if (!found) {
+        return -1;
+    }
 
-    // //If there are uncommitted changes
-    // if (svc->stage->not_changed == 0) {
-    //     return -2;
-    // }
+    //If there are uncommitted changes
+    if (svc->stage->not_changed == 0) {
+        return -2;
+    }
 
-    // svc->head = svc->branch[index];
+    svc->head = svc->branch[index];
     return 0;
 }
 
@@ -564,7 +565,7 @@ int svc_add(void *helper, char *file_name) {
     //There are some uncommitted changes (addition of one)
 
     //If it is the first commit
-    if (branch->commit->size == 0) {
+    if (branch->commit->last_commit_index == -1) {
         if (stage->tracked_file->size != 0) {
             stage->not_changed = 0;
         } else {
@@ -634,7 +635,7 @@ int svc_rm(void *helper, char *file_name) {
 
     //There are some uncommitted changes (addition of one)
     //If it is the first commit
-    if (branch->commit->size == 0) {
+    if (branch->commit->last_commit_index == -1) {
         if (stage->tracked_file->size != 0) {
             stage->not_changed = 0;
         } else {
