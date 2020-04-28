@@ -68,7 +68,7 @@ void commit_t_dyn_array_add_commit(struct commit_t_dyn_array *dyn, commit_t *com
     dyn->commit[dyn->size]->n_prev = commit->n_prev;
 
     if (commit->prev[0] != NULL) {
-        dyn->commit[dyn->size]->prev[0] = commit_t_dyn_array_get(dyn, dyn->last_commit_index-1);
+        dyn->commit[dyn->size]->prev[0] = commit_t_dyn_array_get(dyn, dyn->last_commit_index);
     } else { //Both are NULL;
         dyn->commit[dyn->size]->prev[0] = NULL;
         dyn->commit[dyn->size]->prev[1] = NULL;
@@ -76,6 +76,7 @@ void commit_t_dyn_array_add_commit(struct commit_t_dyn_array *dyn, commit_t *com
 
     dyn->size++;
     dyn->last_commit_index = dyn->size-1;
+
 }
 
 commit_t* commit_t_dyn_array_get(struct commit_t_dyn_array *dyn, int index) {

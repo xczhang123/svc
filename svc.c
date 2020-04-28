@@ -162,16 +162,7 @@ char *svc_commit(void *helper, char *message) {
     stage_t *stage = (((struct svc*)helper)->stage);
     branch_t *branch = ((struct svc*)helper)->head;
 
-    //If there is no commit and the tracked file is empty or there are no changes since the last commit
-    if ((branch->commit->size == 0 && stage->tracked_file->size == 0) || stage->not_changed == 1) {
-        // printf("message %s\n", message);
-        return NULL;
-    }
-
     //First we automatically update the state of the tracked files
-    //Up till now, add files have been marked ADDED
-    //Some of them will be changed to CHANGED and some files will be removed
-    //We will find REMOVED files later
     for (int i = 0; i < stage->tracked_file->size; i++) {
         file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
         FILE *fp;
@@ -197,10 +188,14 @@ char *svc_commit(void *helper, char *message) {
                 memcpy(file->file_content, file_contents, file_length+1);
 
                 stage->not_changed = 0; //As long as we found one change, it's atomic
-
-                file->state = CHANGED;
             }
         }
+    }
+
+    //If there is no commit and the tracked file is empty or there are no changes since the last commit
+    if ((branch->commit->size == 0 && stage->tracked_file->size == 0) || stage->not_changed == 1) {
+        // printf("message %s\n", message);
+        return NULL;
     }
 
     //We are guaranteed we have updated all files
@@ -221,98 +216,60 @@ char *svc_commit(void *helper, char *message) {
         stage->not_changed = 1;
 
         return commit->commit_id;
-        
     }
 
-    // commit_t *last_commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index);
-    // commit_t *prev[2] = {last_commit, NULL};
-    // commit_t_dyn_array_add(branch->commit, stage, message, 1, prev); //Add one new commit
+    commit_t *last_commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index);
+    commit_t *prev[2] = {last_commit, NULL};
+    commit_t_dyn_array_add_commit(branch->commit, last_commit); //Add one new commit
 
-    // commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->size);
+    commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //get current commit
 
-    //     commit_t_dyn_array_add(branch->commit, stage, message, 0);
+    //Now we handle REMOVED or CHANGED files
+    for (int i = 0; i < commit->commited_file->size; i++) {
+        file_t *new_file = file_t_dyn_array_get(commit->commited_file, i);
 
-        //Set hash and value
+        int found = 0;
 
-        
-        // commit_t_dyn_array_add(branch->commit, message); //Set message field and initialize committed_file field
+        for (int j = 0; j < stage->tracked_file->size; j++) {
+            file_t *tracked_file = file_t_dyn_array_get(stage->tracked_file, j);
 
-        // commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //Get the last commit
+            if (strcmp(new_file->file_path, tracked_file->file_path) == 0) {
+                if (new_file->hash != tracked_file->hash) {
+                    new_file->state = CHANGED;
+                    new_file->previous_hash = new_file->hash;
+                    new_file->hash = tracked_file->hash;
+                    found = 1;
+                }
+            }
+        }
+        if (!found) {
+            new_file->state = REMOVED;
+        }
+    }
 
-        // //Copy all the files over to commit from stage
-        // for (int i = 0; i < stage->tracked_file->size; i++) {
-        //      file_t_dyn_array_add(commit->commited_file, 
-        //                             file_t_dyn_array_get(stage->tracked_file, i));
-        // }
-        // commit->n_prev = 0; //Set n_prev field
-        
+    //Now we handle ADDED
+    for (int i = 0; i < stage->tracked_file->size; i++) {
+        file_t *tracked_file = file_t_dyn_array_get(stage->tracked_file, i);
 
-        // commit_t_dyn_array_add(branch->commit, commit_t_dyn_array_get(stage->tracked_file, i));
-        // return;
-    // }
+        int found = 0;
 
+        for (int j = 0; j < commit->commited_file->size; j++) {
+            file_t *new_file = file_t_dyn_array_get(commit->commited_file, j);
 
+            if (strcmp(new_file->file_path, tracked_file->file_path) == 0) {
+                found = 1;
+            }
+        }
+        if (!found) {
+            //Add the file to the new commit
+            tracked_file->state = ADDED;
+            file_t_dyn_array_add(commit->commited_file, tracked_file);
+        }
+    }
 
+    set_commit_id(commit);
 
-
-
-
-
-    // commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index);
-    // //If there are no changes since the last commit or message is NULL: return NULL
-    // int changed = 0;
-    // if (commit->commited_file->size == stage->tracked_file->size) {
-    //     int hash_is_the_same;
-    //     for (int i = 0; i < commit->commited_file->size; i++) {
-    //         hash_is_the_same = 0;
-    //         for (int j = 0; j < stage->tracked_file->size; j++) {
-
-    //             file_t *commit_file = file_t_dyn_array_get(commit->commited_file, i);
-    //             file_t *stage_file = file_t_dyn_array_get(stage->tracked_file, j);
-
-    //             //If the file path and content is the same
-    //             if (strcmp(commit_file->file_path, stage_file->file_path) == 0
-    //                         && commit_file->hash == stage_file->hash) {
-    //                 hash_is_the_same = 1;
-    //             }
-    //         }
-    //         if (!hash_is_the_same) {
-    //             changed = 1;
-    //             break;
-    //         }
-    //     }
-    // }
-    // if (!changed || message == NULL) {
-    //     return NULL;
-    // }
-
-
-    // for (int i = 0; i < commit->commited_file->size; i++) {
-       
-    //     for (int j = 0; j < stage->tracked_file->size; j++) {
-
-    //         file_t *commit_file = file_t_dyn_array_get(commit->commited_file, i);
-    //         file_t *stage_file = file_t_dyn_array_get(stage->tracked_file, j);
-
-    //         //If the file is modified
-    //         if (strcmp(commit_file->file_path, stage_file->file_path) == 0
-    //                     && commit_file->hash == stage_file->hash) {
-                
-    //         }
-    //     }
-    //     if (!hash_is_the_same) {
-    //         changed = 1;
-    //         break;
-    //     }
-    // }
-
-
-
-
-
-    stage->not_changed = 1; //There are no uncommitted changes
-    // return ;
-    return 0;
+    return commit->commit_id;
 }
 
 //DONE
