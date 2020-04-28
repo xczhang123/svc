@@ -381,7 +381,7 @@ void print_commit(void *helper, char *commit_id) {
             printf("    / %s [%d --> %d]\n", file->file_path, file->previous_hash, file->hash);
         }
     }
-
+    puts("");
     printf("    Tracked files (%d):\n", stage->tracked_file->size);
 
     for (int i = 0; i < stage->tracked_file->size; i++) {
