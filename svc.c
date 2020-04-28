@@ -381,10 +381,7 @@ int svc_branch(void *helper, char *branch_name) {
             return -2;
         }
 
-        // puts(name);
     }
-
-    // printf("After this %s\n", branch_name);
 
     //If there are uncommitted changes: return -3
     if (((struct svc*)helper)->stage->is_commited == 0) {
@@ -396,10 +393,8 @@ int svc_branch(void *helper, char *branch_name) {
     //Get the SVC system 
     svc_t *svc = (struct svc*)helper;
     //Allocate space for newly created branch
-    // printf("Before %p\n", svc->branch);
 
     svc->branch = realloc(svc->branch, (svc->size+1)*sizeof(branch_t));
-    // printf("After %p\n", svc->branch[1]);
 
     branch_t *current_branch = svc->head; //Get the current branch
     branch_t *new_branch = malloc(sizeof(branch_t));
@@ -495,6 +490,7 @@ int svc_add(void *helper, char *file_name) {
     file_t_dyn_array_add(stage->tracked_file, new_file);
 
     //There are some uncommitted changes (addition of one)
+
     //If it is the first commit
     if (branch->commit->size == 0) {
         if (stage->tracked_file->size != 0) {
@@ -505,12 +501,22 @@ int svc_add(void *helper, char *file_name) {
         }
     } 
     else { //Normal condition
+        commit_t *commit =  commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index);
         commit_t *last_commit =  commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index-1);
-        if (stage->tracked_file->size != last_commit->commited_file->size) {
-            stage->is_commited = 0; 
-            new_file->state = ADDED;
+        if (last_commit == NULL) {
+            if (stage->tracked_file->size != commit->commited_file->size) {
+                stage->is_commited = 0;
+                new_file->state = ADDED;
+            } else {
+                stage->is_commited = 1; // Set it back to normal
+            }
         } else {
-            stage->is_commited = 1;//Set it back to normal
+            if (stage->tracked_file->size != last_commit->commited_file->size) {
+                stage->is_commited = 0; 
+                new_file->state = ADDED;
+            } else {
+                stage->is_commited = 1;//Set it back to normal
+            }
         }
     }
 
@@ -558,6 +564,7 @@ int svc_rm(void *helper, char *file_name) {
     //After we have successfully deleted the file
 
     //There are some uncommitted changes (addition of one)
+    //If it is the first commit
     if (branch->commit->size == 0) {
         if (stage->tracked_file->size != 0) {
             stage->is_commited = 0;
@@ -566,11 +573,20 @@ int svc_rm(void *helper, char *file_name) {
         }
     } 
     else { //Normal condition
+        commit_t *commit =  commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index);
         commit_t *last_commit =  commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index-1);
-        if (stage->tracked_file->size != last_commit->commited_file->size) {
-            stage->is_commited = 0; 
+        if (last_commit == NULL) {
+            if (stage->tracked_file->size != commit->commited_file->size) {
+                stage->is_commited = 0;
+            } else {
+                stage->is_commited = 1; // Set it back to normal
+            }
         } else {
-            stage->is_commited = 1;//Set it back to normal
+            if (stage->tracked_file->size != last_commit->commited_file->size) {
+                stage->is_commited = 0; 
+            } else {
+                stage->is_commited = 1;//Set it back to normal
+            }
         }
     }
     return file_to_be_deleted_hash;
