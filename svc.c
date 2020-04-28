@@ -5,51 +5,40 @@
 
 //DONE
 void *svc_init(void) {
-    // TODO: Implement
     svc_t *svc = calloc(1, sizeof(svc_t));
+    svc->branch = calloc(1, sizeof(branch_t));
+    svc->head = &svc->branch[0];
+    svc->size++;
+    svc->stage = calloc(1, sizeof(stage_t));
+
+    stage_t *stage = svc->stage;
+    stage->tracked_file = file_t_dyn_array_init();
+
+    branch_t *branch = svc->head;
+    branch->commit = commit_t_dyn_array_init();
+    branch->name = strdup("master");
+
     return svc;
 }
 
+//PARTIALLY DONE: free commit fields
 void cleanup(void *helper) {
     //Get the SVC system 
     svc_t *svc = (struct svc*)helper;
 
-    for (size_t i = 0; i < svc->size; i++) {
+    for (int i = 0; i < svc->size; i++) {
         branch_t *branch = &svc->branch[i];
-        
-        for (size_t j = 0; j < branch->size; j++) {
-            commit_t *commit = &branch->commit[i];
+        free(branch->name);
+        branch->name = NULL;
 
-            for (size_t z = 0; z < commit->size; z++) {
-                file_t *file = &commit->commited_file[z];
-                if (file->file_content != NULL) {
-                    free(file->file_content);
-                    file->file_content = NULL;
-                }
-                if (file->file_path != NULL) {
-                    free(file->file_path);
-                    file->file_path = NULL;   
-                }
-            }
-            // ******** free commit
-        }
-        if (branch->name != NULL) {
-            free(branch->name);
-            branch->name = NULL;
-        }
-        if (branch->commit != NULL) {
-            free(branch->commit);
-            branch->commit = NULL;  
-        }
+        commit_t_dyn_array_free(branch->commit);
     }
-    if (svc->branch != NULL) {
-        free(svc->branch);
-        svc->branch = NULL;
-    }
-    if (svc->stage != NULL) {
-        free(svc->stage);
-        svc->stage = NULL;
-    }
+    free(svc->branch);
+    svc->branch = NULL;
+
+    file_t_dyn_array_free(svc->stage->tracked_file);
+    free(svc->stage);
+    svc->stage = NULL;
     free(svc);
 }
 
@@ -72,8 +61,8 @@ int hash_file(void *helper, char *file_path) {
     long file_length = ftell(fp);
     fseek(fp, 0, SEEK_SET);
     char file_contents[file_length+1];
-    file_contents[file_length] = '\0';
     fread(file_contents, sizeof(char), file_length, fp);
+    file_contents[file_length] = '\0';
     fclose(fp);
 
     //Hash number
@@ -93,31 +82,122 @@ int hash_file(void *helper, char *file_path) {
 }
 
 char *svc_commit(void *helper, char *message) {
-    // TODO: Implement
+    
     stage_t *stage = (((struct svc*)helper)->stage);
-    //If there are no changes since the last commit or message is NULL: return NULL
-    if (stage->size == 0 || message == NULL) {
-        return NULL;
+    branch_t *branch = ((struct svc*)helper)->head;
+
+    //First we automatically update the state of the tracked files
+    for (int i = 0; i < stage->tracked_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
+        FILE *fp;
+        if ((fp=fopen(file->file_path, "r")) == NULL) {
+            //User has manually deleted the file from the file system
+            file_t_dyn_array_delete_index(stage->tracked_file, i);
+        } else {//We recalculate the hash value for each file
+            file->previous_hash = file->hash;
+            file->hash = hash_file(helper, file->file_path);
+            
+            fseek(fp, 0, SEEK_END);
+            long file_length = ftell(fp);
+            fseek(fp, 0, SEEK_SET);
+            char file_contents[file_length+1];
+            file_contents[file_length] = '\0';
+            fread(file_contents, sizeof(char), file_length, fp);
+            fclose(fp);
+
+            file->file_content = malloc(sizeof(char)*(file_length+1)); //Realloc file_content field
+            memcpy(file->file_content, file_contents, file_length+1);
+            
+            file->state = DEFAULT;
+        }
     }
 
-    //We assume there are at least one branch created
-    //As a result of the svc_add() method
+    //We are guaranteed we have updated all files
 
-    // branch_t *branch = ((struct svc*)helper)->head; //Get current branch
+    // //Special case: when it is the first commit
+    // if (branch->commit->size == 0) {
 
-    // //If it is the very first commit
-    // if (branch->commit == NULL) {
-    //     branch->commit = calloc(1, sizeof(commit_t)); //Set branch commit field
-    //     branch->last_commit_index = 0; //Set branch last_commit_index field to be the first commit
-    //     branch->size++; //Set branch size field
+    //     commit_t_dyn_array_add(branch->commit, stage, message, 0);
+
+        //Set hash and value
+
+        
+        // commit_t_dyn_array_add(branch->commit, message); //Set message field and initialize committed_file field
+
+        // commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //Get the last commit
+
+        // //Copy all the files over to commit from stage
+        // for (int i = 0; i < stage->tracked_file->size; i++) {
+        //      file_t_dyn_array_add(commit->commited_file, 
+        //                             file_t_dyn_array_get(stage->tracked_file, i));
+        // }
+        // commit->n_prev = 0; //Set n_prev field
+        
+
+        // commit_t_dyn_array_add(branch->commit, commit_t_dyn_array_get(stage->tracked_file, i));
+        // return;
     // }
 
-    // commit_t *last_commit = &branch->commit[branch->last_commit_index]; //Get last commit(current commit)
 
 
 
 
 
+
+
+    // commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index);
+    // //If there are no changes since the last commit or message is NULL: return NULL
+    // int changed = 0;
+    // if (commit->commited_file->size == stage->tracked_file->size) {
+    //     int hash_is_the_same;
+    //     for (int i = 0; i < commit->commited_file->size; i++) {
+    //         hash_is_the_same = 0;
+    //         for (int j = 0; j < stage->tracked_file->size; j++) {
+
+    //             file_t *commit_file = file_t_dyn_array_get(commit->commited_file, i);
+    //             file_t *stage_file = file_t_dyn_array_get(stage->tracked_file, j);
+
+    //             //If the file path and content is the same
+    //             if (strcmp(commit_file->file_path, stage_file->file_path) == 0
+    //                         && commit_file->hash == stage_file->hash) {
+    //                 hash_is_the_same = 1;
+    //             }
+    //         }
+    //         if (!hash_is_the_same) {
+    //             changed = 1;
+    //             break;
+    //         }
+    //     }
+    // }
+    // if (!changed || message == NULL) {
+    //     return NULL;
+    // }
+
+
+    // for (int i = 0; i < commit->commited_file->size; i++) {
+       
+    //     for (int j = 0; j < stage->tracked_file->size; j++) {
+
+    //         file_t *commit_file = file_t_dyn_array_get(commit->commited_file, i);
+    //         file_t *stage_file = file_t_dyn_array_get(stage->tracked_file, j);
+
+    //         //If the file is modified
+    //         if (strcmp(commit_file->file_path, stage_file->file_path) == 0
+    //                     && commit_file->hash == stage_file->hash) {
+                
+    //         }
+    //     }
+    //     if (!hash_is_the_same) {
+    //         changed = 1;
+    //         break;
+    //     }
+    // }
+
+
+
+
+
+    stage->is_commited = 1; //There are no uncommitted changes
     return NULL;
 }
 
@@ -132,11 +212,11 @@ void *get_commit(void *helper, char *commit_id) {
     svc_t *svc = (struct svc*)helper;
 
     //Loop through all the branches
-    for (size_t i = 0; i < svc->size; i++) {
+    for (int i = 0; i < svc->size; i++) {
         branch_t *branch = &svc->branch[i];
         //Loop through all the commits in one branch
-        for (size_t j = 0; j < branch->size; j++) {
-            commit_t *commit = &branch->commit[j];
+        for (int j = 0; j < branch->commit->size; j++) {
+            commit_t *commit = commit_t_dyn_array_get(branch->commit, j);
             if (strcmp(commit->commit_id, commit_id) == 0) {
                 return commit;
             }
@@ -153,12 +233,15 @@ char **get_prev_commits(void *helper, void *commit, int *n_prev) {
         return NULL;
     }
 
-    //Change the n_prev
-    *n_prev = ((struct commit*)commit)->n_prev;
-
-    if (*n_prev == 0) {
+    //If commit is NULL, or it is the very first commit, 
+    //this function should set the contents of n_prev to 0 and return NULL.
+    if (commit == NULL || ((struct commit*)commit)->n_prev == 0) {
+        *n_prev = 0;
         return NULL;
     }
+
+    //Store the value in the memory pointer to by n_prev
+    *n_prev = ((struct commit*)commit)->n_prev;
 
     //Assertion: n_prev must be 1 or 2
     char **commit_id = calloc(*n_prev, sizeof(*commit_id)); //array of pointers to return later
@@ -166,7 +249,7 @@ char **get_prev_commits(void *helper, void *commit, int *n_prev) {
 
     if (*n_prev == 1) {
         commit_id[0] = strdup(prev[0]->commit_id);
-    } else {
+    } else { //*n_prev == 2
         commit_id[0] = strdup(prev[0]->commit_id);
         commit_id[1] = strdup(prev[1]->commit_id);
     }
@@ -186,14 +269,6 @@ int svc_branch(void *helper, char *branch_name) {
         return -1;
     }
 
-    //If branch name already exists: return -2
-    for (size_t i = 0; i < ((struct svc*)helper)->size; i++) {
-        char *name = ((struct svc*)helper)->branch[i].name;
-        if (strcmp(branch_name, name) == 0) {
-            return -2;
-        }
-    }
-
     //File name is invalid: return -1
     for (size_t i = 0; i < strlen(branch_name); i++) {
         int c = branch_name[i]; //Get the ASCII representation of character
@@ -211,7 +286,14 @@ int svc_branch(void *helper, char *branch_name) {
               (c == 95) || (c == 47) || (c == 45) ) ) {
             return -1;
         }
+    }
 
+    //If branch name already exists: return -2
+    for (int i = 0; i < ((struct svc*)helper)->size; i++) {
+        char *name = ((struct svc*)helper)->branch[i].name;
+        if (strcmp(branch_name, name) == 0) {
+            return -2;
+        }
     }
 
     //If there are uncommitted changes: return -3
@@ -227,13 +309,14 @@ int svc_branch(void *helper, char *branch_name) {
     svc->branch = realloc(svc->branch, (svc->size+1)*sizeof(branch_t));
 
     branch_t *current_branch = svc->head; //Get the current branch
-    branch_t *new_branch = &svc->branch[svc->size]; //Get the newly created branch
-    svc->size++; //svc number of branches increments
+    branch_t *new_branch = malloc(sizeof(*current_branch)); 
 
-    //Set field for the new_branch
     //Copy everything from the current_branch except that we change the name field
     memcpy(new_branch, current_branch, sizeof(*current_branch));
     new_branch->name = strdup(branch_name); // Set the name field
+    
+    svc->size++; //svc number of branches increments
+    svc->head = new_branch;
 
     return 0;
 }
@@ -243,25 +326,32 @@ int svc_checkout(void *helper, char *branch_name) {
     return 0;
 }
 
+//DONE
 char **list_branches(void *helper, int *n_branches) {
-    // TODO: Implement
-    return NULL;
+    
+    if (n_branches == NULL) {
+        return NULL;
+    }
+
+    svc_t *svc = (struct svc*)helper;
+    int n = svc->size;
+
+    *n_branches = n;
+
+    char **branch_names = malloc(sizeof(char*)*n);
+    
+    for (int i = 0; i < n; i++) {
+        branch_t *branch = &svc->branch[i];
+        printf("%s\n", branch->name);
+        branch_names[i] = strdup(branch->name);
+    }
+    return branch_names;
 }
 
-//Partially DONE: create branch!!!
+//DONE
 int svc_add(void *helper, char *file_name) {
 
     svc_t *svc = ((struct svc*)helper);
-
-    //If it is the first time we call svc_add, create branch
-    if (svc->size == 0) {
-        svc->branch = calloc(1, sizeof(branch_t));
-        svc->head = &svc->branch[0];
-        svc->size++;
-        svc->stage = calloc(1, sizeof(stage_t));
-
-        svc->head->name = strdup("master"); //We only set the name of the branch here
-    }
 
     //If the file name is NULL: return -1
     if (file_name == NULL) {
@@ -271,9 +361,9 @@ int svc_add(void *helper, char *file_name) {
     stage_t *stage = ((struct svc*)helper)->stage;
 
     //If the file name is already under version control: return -2
-    for (size_t i = 0; i < stage->size; i++) {
-        file_t *file = &stage->staged_file[i];
-        if (strcmp(file->file_path, file_name) == 0 && file->state != REMOVED) {
+    for (int i = 0; i < stage->tracked_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
+        if (strcmp(file->file_path, file_name) == 0) {
             return -2;
         }
     }
@@ -300,16 +390,13 @@ int svc_add(void *helper, char *file_name) {
     memcpy(new_file->file_content, file_contents, file_length+1); //Set file_content field
     new_file->file_path = strdup(file_name); //Set file_path field
     new_file->hash = hash_file(helper, file_name); //Set hash field
-    new_file->state = ADDED; //Set state field
+    new_file->previous_hash = new_file->hash; //Set previous hash
+    new_file->state = DEFAULT; //Set state field
 
     //Store new_file in the svc system stage field
+    file_t_dyn_array_add(stage->tracked_file, new_file);
 
-    stage->staged_file = realloc(stage->staged_file, sizeof(file_t)*(stage->size+1));//Realloc staged_file field
-    memcpy(&stage->staged_file[stage->size++], new_file, sizeof(file_t)); //Set the size and staged_file field
-    stage->is_commited = 0; //Set the is_commited field to False
-
-
-    free(new_file);
+    stage->is_commited = 0; //There are some uncommitted changes
     return hash_file(helper, file_name); //return hash_value
 }
 
@@ -322,23 +409,19 @@ int svc_rm(void *helper, char *file_name) {
 
     stage_t *stage = ((struct svc*)helper)->stage;
 
-    //If the file with the given name is not being tracked
-    if (stage == NULL) {
-        return -2;
-    }
+    int file_to_be_deleted_hash = -1;
 
-    file_t *file_to_be_deleted = NULL;
-
-    for (size_t i = 0; i < stage->size; i++) {
-        file_t *file = &stage->staged_file[i];
-        if (strcmp(file->file_path, file_name) == 0 && file->state == ADDED) {
-            file->state = REMOVED;
-            file_to_be_deleted = file;
+    for (int i = 0; i < stage->tracked_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
+        if (strcmp(file->file_path, file_name) == 0) {
+            file_to_be_deleted_hash = file->hash;
+            file_t_dyn_array_delete_file(stage->tracked_file, file);
             break;
         }
     }
 
-    if (file_to_be_deleted == NULL) {
+    //If the file with the given name is not being tracked
+    if (file_to_be_deleted_hash == -1) {
         return -2;
     }
 
@@ -348,7 +431,10 @@ int svc_rm(void *helper, char *file_name) {
         return -3;
     }
 
-    return file_to_be_deleted->hash;
+    //After we have successfully deleted the file
+
+    stage->is_commited = 0; //There are some uncommitted changes
+    return file_to_be_deleted_hash;
 }
 
 int svc_reset(void *helper, char *commit_id) {
