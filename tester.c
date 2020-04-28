@@ -64,19 +64,31 @@ int test_add_branch() {
 }
 
 int example1() {
-    // void *helper = svc_init();
-    // assert(hash_file(helper, "hello.py") == 2027);
-    // assert(hash_file(helper, "fake.c") == -2);
-    // assert(svc_commit(helper, "No changes") == NULL);
-    //Return value: NULL
-    // svc_add(helper, "hello.py");
-    // //Return value: 2027
-    // //svc_add(helper, "Tests/test1.in");
-    // //Return value: 564 (from example above)
-    // svc_add(helper, "Tests/test1.in");
-    // // Return value: -2
-    // svc_commit(helper, "Initial commit");
+    void *helper = svc_init();
+
+    assert(hash_file(helper, "hello.py") == 2027);
+    assert(hash_file(helper, "fake.c") == -2);
+    assert(svc_commit(helper, "No changes") == NULL);
+
+    assert(svc_add(helper, "hello.py") == 2027);
+
+    // printf("%d\n", ((struct svc*)helper)->stage->not_changed);
+
+    assert(svc_add(helper, "Tests/test1.in") == 564);
+
+    // printf("%d\n", ((struct svc*)helper)->stage->not_changed);
+
+    assert(svc_add(helper, "Tests/test1.in") == -2);
+
+    // printf("%d\n", ((struct svc*)helper)->stage->not_changed);
+
+    // printf("%s\n", svc_commit(helper, "Initial commit"));
+    assert(strcmp(svc_commit(helper, "Initial commit"), "74cde7") == 0);
     // Return value: "74cde7"
+
+    cleanup(helper);
+
+    return 1;
 }
 
 

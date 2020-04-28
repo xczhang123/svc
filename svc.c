@@ -14,7 +14,7 @@ void *svc_init(void) {
 
     stage_t *stage = svc->stage;
     stage->tracked_file = file_t_dyn_array_init();
-    stage->is_commited = 0;
+    stage->not_changed = 1;
 
     branch_t *branch = svc->head;
     branch->commit = commit_t_dyn_array_init();
@@ -99,45 +99,60 @@ void set_commit_id(commit_t *commit) {
     for (size_t i = 0; i < strlen(commit->message); i++) {
         id = (id + (unsigned char)commit->message[i]) % 1000;
     }
-    
+
     //Sort the committed files in alphabetical order
     for (int i = 0; i < commit->commited_file->size; i++) {
         for (int j = 0; j < commit->commited_file->size-i-1; j++) {
-            char *name1 = file_t_dyn_array_get(commit->commited_file, j)->file_path;
-            char *name2 = file_t_dyn_array_get(commit->commited_file, j+1)->file_path;
 
-            if (strcmp(name1, name2) > 0) {
-                char* e = strdup(name1);
-                free(name1);
-                name1 = strdup(name2);
-                free(name2);
-                name2 = strdup(e);
-                free(e);
+            file_t *file1 = file_t_dyn_array_get(commit->commited_file, j);
+            file_t *file2 = file_t_dyn_array_get(commit->commited_file, j+1);
+
+            char *name1 = file1->file_path;
+            char *name2 = file2->file_path;
+
+            // printf("name1: %s, name2: %s %d\n",name1,name2,strcmp(name1, name2));
+
+            if (strcmp(name1, name2) < 0) {
+
+                file_t *temp = malloc(sizeof(file_t));
+
+                memcpy(temp, file1, sizeof(file_t));
+                memcpy(file1, file2, sizeof(file_t));
+                memcpy(file2, temp, sizeof(file_t));
+
+                free(temp);
+
             }
         }
     }
 
+    // printf("1st %s\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path);
+    // printf("2nd %s\n", file_t_dyn_array_get(commit->commited_file, 1)->file_path);
+
     //for change in commit.changes in increasing alphabetical order of file_name:
+    //For unsigned byte in change.file_name
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
 
         if (file->state == ADDED) {
             id += 376591;
-        } else if(file->state == REMOVED) {
+        } else if (file->state == REMOVED) {
             id += 85973;
         } else if (file->state == CHANGED) {
             id += 9573681;
         }
-    }
 
-    //For unsigned byte in change.file_name
-    for (int i = 0; i < commit->commited_file->size; i++) {
-        file_t *file = file_t_dyn_array_get(commit->commited_file, i);
+        // printf("id is: %d\n", id);
 
         for (size_t j = 0; j < strlen(file->file_path); j++) {
-            id = (id * ((unsigned char)(file->file_path[j]) % 37) % 15485863 + 1);
+            // printf("character is: %d\n", (unsigned char)file->file_path[j] );
+            // printf("id is: %d\n", id);
+            id = (id * ((unsigned char)file->file_path[j] % 37)) % 15485863 + 1;
         }
+        // printf("id is: %d\n", id);
     }
+
+    // printf("id is: %d\n", id);
 
     sprintf(commit->commit_id, "%06x", id);
 }
@@ -147,7 +162,9 @@ char *svc_commit(void *helper, char *message) {
     stage_t *stage = (((struct svc*)helper)->stage);
     branch_t *branch = ((struct svc*)helper)->head;
 
-    if (!stage->is_commited) {
+    //If there is no commit and the tracked file is empty or there are no changes since the last commit
+    if ((branch->commit->size == 0 && stage->tracked_file->size == 0) || stage->not_changed == 1) {
+        // printf("message %s\n", message);
         return NULL;
     }
 
@@ -179,7 +196,7 @@ char *svc_commit(void *helper, char *message) {
                 file->file_content = realloc(file->file_content,sizeof(char)*(file_length+1)); //Realloc file_content field
                 memcpy(file->file_content, file_contents, file_length+1);
 
-                stage->is_commited = 0; //As long as we found one change, it's atomic
+                stage->not_changed = 0; //As long as we found one change, it's atomic
 
                 file->state = CHANGED;
             }
@@ -201,7 +218,7 @@ char *svc_commit(void *helper, char *message) {
         
         set_commit_id(commit);
 
-        stage->is_commited = 1;
+        stage->not_changed = 1;
 
         return commit->commit_id;
         
@@ -287,7 +304,7 @@ char *svc_commit(void *helper, char *message) {
 
 
 
-    stage->is_commited = 1; //There are no uncommitted changes
+    stage->not_changed = 1; //There are no uncommitted changes
     // return ;
     return 0;
 }
@@ -392,7 +409,7 @@ int svc_branch(void *helper, char *branch_name) {
     }
 
     //If there are uncommitted changes: return -3
-    if (((struct svc*)helper)->stage->is_commited == 0) {
+    if (((struct svc*)helper)->stage->not_changed == 0) {
         return -3;
     }
 
@@ -502,9 +519,9 @@ int svc_add(void *helper, char *file_name) {
     //If it is the first commit
     if (branch->commit->size == 0) {
         if (stage->tracked_file->size != 0) {
-            stage->is_commited = 0;
+            stage->not_changed = 0;
         } else {
-            stage->is_commited = 1;//Set it back to normal
+            stage->not_changed = 1;//Set it back to normal
         }
     } 
     else { //Normal condition
@@ -512,15 +529,15 @@ int svc_add(void *helper, char *file_name) {
         commit_t *last_commit =  commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index-1);
         if (last_commit == NULL) {
             if (stage->tracked_file->size != commit->commited_file->size) {
-                stage->is_commited = 0;
+                stage->not_changed = 0;
             } else {
-                stage->is_commited = 1; // Set it back to normal
+                stage->not_changed = 1; // Set it back to normal
             }
         } else {
             if (stage->tracked_file->size != last_commit->commited_file->size) {
-                stage->is_commited = 0; 
+                stage->not_changed = 0; 
             } else {
-                stage->is_commited = 1;//Set it back to normal
+                stage->not_changed = 1;//Set it back to normal
             }
         }
     }
@@ -572,9 +589,9 @@ int svc_rm(void *helper, char *file_name) {
     //If it is the first commit
     if (branch->commit->size == 0) {
         if (stage->tracked_file->size != 0) {
-            stage->is_commited = 0;
+            stage->not_changed = 0;
         } else {
-            stage->is_commited = 1;//Set it back to normal
+            stage->not_changed = 1;//Set it back to normal
         }
     } 
     else { //Normal condition
@@ -582,15 +599,15 @@ int svc_rm(void *helper, char *file_name) {
         commit_t *last_commit =  commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index-1);
         if (last_commit == NULL) {
             if (stage->tracked_file->size != commit->commited_file->size) {
-                stage->is_commited = 0;
+                stage->not_changed = 0;
             } else {
-                stage->is_commited = 1; // Set it back to normal
+                stage->not_changed = 1; // Set it back to normal
             }
         } else {
             if (stage->tracked_file->size != last_commit->commited_file->size) {
-                stage->is_commited = 0; 
+                stage->not_changed = 0; 
             } else {
-                stage->is_commited = 1;//Set it back to normal
+                stage->not_changed = 1;//Set it back to normal
             }
         }
     }

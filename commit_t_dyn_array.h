@@ -38,7 +38,7 @@ struct commit_t_dyn_array {
  * size: size of the staged file
 */
 typedef struct stage {
-    int is_commited;
+    int not_changed;
     struct file_t_dyn_array *tracked_file;
 } stage_t;
 
