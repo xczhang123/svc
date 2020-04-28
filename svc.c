@@ -369,24 +369,24 @@ void print_commit(void *helper, char *commit_id) {
     }
 
     commit_t *commit = commit_t_dyn_array_get(branch->commit, index);
-    printf("%s [%s]: %s", commit->commit_id, branch->name, commit->message);
+    printf("%s [%s]: %s\n", commit->commit_id, branch->name, commit->message);
 
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
         if (file->state == ADDED) {
-            printf("    + %s", file->file_path);
+            printf("    + %s\n", file->file_path);
         } else if (file->state == REMOVED) {
-            printf("    - %s", file->file_path);
+            printf("    - %s\n", file->file_path);
         } else if (file->state == CHANGED) {
-            printf("    / %s [%d --> %d]", file->file_path, file->previous_hash, file->hash);
+            printf("    / %s [%d --> %d]\n", file->file_path, file->previous_hash, file->hash);
         }
     }
 
-    printf("    Tracked files (%d):", stage->tracked_file->size);
+    printf("    Tracked files (%d):\n", stage->tracked_file->size);
 
     for (int i = 0; i < stage->tracked_file->size; i++) {
         file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
-        printf("    [%10d] %s", file->hash, file->file_path);
+        printf("    [%10d] %s\n", file->hash, file->file_path);
     }
 }
 
