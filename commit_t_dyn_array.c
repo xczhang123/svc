@@ -34,9 +34,18 @@ void commit_t_dyn_array_add(struct commit_t_dyn_array *dyn, stage_t *stage, char
                                     file_t_dyn_array_get(stage->tracked_file, i));
     }
     dyn->commit[dyn->size]->n_prev = n_prev;
-
-    dyn->commit[dyn->size]->prev[0] = prev[0];
-    dyn->commit[dyn->size]->prev[1] = prev[1];
+    if (prev[0] != NULL) {
+        dyn->commit[dyn->size]->prev[0] = malloc(sizeof(commit_t));
+        memcpy(dyn->commit[dyn->size]->prev[0], prev[0], sizeof(commit_t));
+    } else if (prev[0] != NULL && prev[1] != NULL) {
+        dyn->commit[dyn->size]->prev[0] = malloc(sizeof(commit_t));
+        memcpy(dyn->commit[dyn->size]->prev[0], prev[0], sizeof(commit_t));
+        dyn->commit[dyn->size]->prev[1] = malloc(sizeof(commit_t));
+        memcpy(dyn->commit[dyn->size]->prev[1], prev[1], sizeof(commit_t));
+    } else { //Both are NULL;
+        dyn->commit[dyn->size]->prev[0] = NULL;
+        dyn->commit[dyn->size]->prev[1] = NULL;
+    }
     
 
     dyn->size++;
