@@ -461,33 +461,33 @@ int svc_branch(void *helper, char *branch_name) {
 }
 
 int svc_checkout(void *helper, char *branch_name) {
-    if (branch_name == NULL) {
-        return -1;
-    }
+    // if (branch_name == NULL) {
+    //     return -1;
+    // }
 
-    svc_t *svc = ((struct svc*)helper);
+    // svc_t *svc = ((struct svc*)helper);
 
-    int found = 0;
-    int index = -1;
-    for (int i = 0; i < svc->size; i++) {
-        if (strcmp(svc->branch[i]->name, branch_name) == 0) {
-            found = 1;
-            index = i;
-            break;
-        }
-    }
+    // int found = 0;
+    // int index = -1;
+    // for (int i = 0; i < svc->size; i++) {
+    //     if (strcmp(svc->branch[i]->name, branch_name) == 0) {
+    //         found = 1;
+    //         index = i;
+    //         break;
+    //     }
+    // }
     
-    if (!found) {
-        return -1;
-    }
+    // if (!found) {
+    //     return -1;
+    // }
 
-    //If there are uncommitted changes
-    if (svc->stage->not_changed == 0) {
-        return -2;
-    }
+    // //If there are uncommitted changes
+    // if (svc->stage->not_changed == 0) {
+    //     return -2;
+    // }
 
-    svc->head = svc->branch[index];
-    return 0;
+    // svc->head = svc->branch[index];
+    // return 0;
 }
 
 //DONE
