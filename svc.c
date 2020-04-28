@@ -45,6 +45,8 @@ void cleanup(void *helper) {
 //DONE
 int hash_file(void *helper, char *file_path) {
 
+    (void)helper;
+
     //file_path is NULL
     if (file_path == NULL) {
         return -1;
@@ -81,6 +83,56 @@ int hash_file(void *helper, char *file_path) {
     return hash;
 }
 
+
+void set_commit_id(commit_t *commit) {
+    int id = 0;
+
+    for (size_t i = 0; i < strlen(commit->message); i++) {
+        id = (id + (unsigned char)commit->message[i]) % 1000;
+    }
+    
+    //Sort the committed files in alphabetical order
+    for (int i = 0; i < commit->commited_file->size; i++) {
+        for (int j = 0; j < commit->commited_file->size-i-1; j++) {
+            char *name1 = file_t_dyn_array_get(commit->commited_file, j)->file_path;
+            char *name2 = file_t_dyn_array_get(commit->commited_file, j+1)->file_path;
+
+            if (strcmp(name1, name2) > 0) {
+                char* e = strdup(name1);
+                free(name1);
+                name1 = strdup(name2);
+                free(name2);
+                name2 = strdup(e);
+                free(e);
+            }
+        }
+    }
+
+    //for change in commit.changes in increasing alphabetical order of file_name:
+    for (int i = 0; i < commit->commited_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(commit->commited_file, i);
+
+        if (file->state == ADDED) {
+            id += 376591;
+        } else if(file->state == REMOVED) {
+            id += 85973;
+        } else if (file->state == CHANGED) {
+            id += 9573681;
+        }
+    }
+
+    //For unsigned byte in change.file_name
+    for (int i = 0; i < commit->commited_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(commit->commited_file, i);
+
+        for (size_t j = 0; j < strlen(file->file_path); j++) {
+            id = (id * ((unsigned char)(file->file_path[j]) % 37) % 15485863 + 1);
+        }
+    }
+
+    sprintf(commit->commit_id, "%06x", id);
+}
+
 char *svc_commit(void *helper, char *message) {
     
     stage_t *stage = (((struct svc*)helper)->stage);
@@ -93,6 +145,7 @@ char *svc_commit(void *helper, char *message) {
         if ((fp=fopen(file->file_path, "r")) == NULL) {
             //User has manually deleted the file from the file system
             file_t_dyn_array_delete_index(stage->tracked_file, i);
+            i--;
         } else {//We recalculate the hash value for each file
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
@@ -115,8 +168,20 @@ char *svc_commit(void *helper, char *message) {
     //We are guaranteed we have updated all files
 
     // //Special case: when it is the first commit
-    // if (branch->commit->size == 0) {
+    if (branch->commit->size == 0) {
+        //Mark all files as ADDED
+        for (int i = 0; i < stage->tracked_file->size; i++) {
+            file_t_dyn_array_get(stage->tracked_file, i)->state = ADDED;
+        }
+        commit_t *prev[2] = {NULL, NULL};
+        commit_t_dyn_array_add(branch->commit, stage, message, 0, prev);
 
+        commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //Get the last commit
+        
+        set_commit_id(commit);
+        
+    }
+    
     //     commit_t_dyn_array_add(branch->commit, stage, message, 0);
 
         //Set hash and value
@@ -228,6 +293,8 @@ void *get_commit(void *helper, char *commit_id) {
 
 //DONE
 char **get_prev_commits(void *helper, void *commit, int *n_prev) {
+
+    (void)helper;
 
     if (n_prev == NULL) {
         return NULL;
@@ -358,7 +425,7 @@ int svc_add(void *helper, char *file_name) {
         return -1;
     }
     
-    stage_t *stage = ((struct svc*)helper)->stage;
+    stage_t *stage = svc->stage;
 
     //If the file name is already under version control: return -2
     for (int i = 0; i < stage->tracked_file->size; i++) {

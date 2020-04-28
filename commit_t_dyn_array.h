@@ -75,7 +75,7 @@ void commit_t_dyn_array_resize(struct commit_t_dyn_array *d);
 
 struct commit_t_dyn_array* commit_t_dyn_array_init();
 
-// void commit_t_dyn_array_add(struct commit_t_dyn_array *dyn, stage_t *stage, char *message, int n_prev)
+void commit_t_dyn_array_add(struct commit_t_dyn_array *dyn, stage_t *stage, char *message, int n_prev, commit_t *prev[2]);
 
 commit_t* commit_t_dyn_array_get(struct commit_t_dyn_array *dyn, int index);
 
