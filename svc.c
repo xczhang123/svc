@@ -220,7 +220,11 @@ char *svc_commit(void *helper, char *message) {
 
     commit_t *last_commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index);
     commit_t *prev[2] = {last_commit, NULL};
-    commit_t_dyn_array_add_commit(branch->commit, last_commit); //Add one new commit
+
+    stage_t previous = {0}; //temporary stage object to store files in previous commit
+    previous.tracked_file = last_commit->commited_file;
+
+    commit_t_dyn_array_add(branch->commit, &previous, message, 1, prev); //Add one new commit
 
     commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //get current commit
 
