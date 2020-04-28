@@ -185,6 +185,8 @@ char *svc_commit(void *helper, char *message) {
         
         set_commit_id(commit);
 
+        stage->is_commited = 1;
+
         return commit->commit_id;
         
     }

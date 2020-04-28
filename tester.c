@@ -39,6 +39,10 @@ int test_add_branch() {
 
     assert(svc->size == 1);
 
+    svc_add(helper, "test1.txt");
+
+    svc_commit(helper, "first");
+
     int ret1 = svc_branch(helper, "test1");
 
     assert(ret1 == 0);
