@@ -11,7 +11,7 @@ svc: $(OBJ)
 	
 tester: tester.c $(OBJ)
 	$(CC) -o $@ $< $(OBJ) $(CFLAG_SAN)
-	./tester example2
+	./tester all
 	
 .PHONY: clean
 

@@ -98,8 +98,8 @@ int compare(const void* a, const void* b) {
     file_t **file1 = ((file_t**)a);
     file_t **file2 = ((file_t**)b);   
 
-    char *aa = (*file1)->file_content;
-    char *bb = (*file2)->file_content;
+    char *aa = (*file1)->file_path;
+    char *bb = (*file2)->file_path;
 
     int n = strlen(aa) <= strlen(bb) ? strlen(aa) : strlen(bb);
     for (int i = 0; i < n; i++) {
@@ -111,7 +111,7 @@ int compare(const void* a, const void* b) {
                     return -1;
                 }
             } else {
-                return strcasecmp(aa, bb); //case insensitive
+                return strcasecmp(aa, bb);
             }
         }
     }
@@ -136,8 +136,8 @@ void set_commit_id(commit_t *commit) {
     //Sort file name in alphabetic order
     qsort(commit->commited_file->file, commit->commited_file->size, sizeof(file_t*), &compare); 
 
-    // printf("1st %s\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path);
-    // printf("2nd %s\n", file_t_dyn_array_get(commit->commited_file, 1)->file_path);
+    printf("1st %s\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path);
+    printf("2nd %s\n", file_t_dyn_array_get(commit->commited_file, 1)->file_path);
 
     //for change in commit.changes in increasing alphabetical order of file_name:
     //For unsigned byte in change.file_name
