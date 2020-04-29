@@ -94,11 +94,148 @@ int example1() {
 int example2() {
 
     void *helper = svc_init();
+    svc_t *svc = ((struct svc*)helper);
+
+    FILE* fp0 = fopen("COMP2017/svc.h", "w");
+    char buf0[] = "#ifndef svc_h\n#define svc_h\nvoid *svc_init(void);\n#endif\n";
+    fputs(buf0, fp0);
+    fclose(fp0);
 
     assert(svc_add(helper, "COMP2017/svc.h") == 5007);
+
+    FILE *fp = fopen("COMP2017/svc.c", "w");
+
+    char buf1[] = "# include \"svc.h\"\nvoid *svc_init(void) {\n    //TODO: implement\n}\n";
+    fputs(buf1,fp);
+    fclose(fp);
+
+    // printf("%d\n", hash_file(helper, "COMP2017/svc.c"));
+
     assert(svc_add(helper, "COMP2017/svc.c") == 5217);
-    printf("%s\n", svc_commit(helper, "Initial commit"));
-    // assert(strcmp(svc_commit(helper, "Initail commit"), "7b3e30") == 0);
+    // printf("%s\n", svc_commit(helper, "Initial commit"));
+    assert(strcmp(svc_commit(helper, "Initail commit"), "7b3e30") == 0);
+
+    branch_t *branch = svc->head;
+    commit_t *commit = commit_t_dyn_array_get(branch->commit, 0);
+    printf("%s\n", branch->name);
+    printf("%s\n", commit->commit_id);
+    printf("%ld\n", commit->n_prev);
+    printf("%s %d\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path, file_t_dyn_array_get(commit->commited_file, 0)->state);
+    printf("%s %d\n",file_t_dyn_array_get(commit->commited_file, 1)->file_path, file_t_dyn_array_get(commit->commited_file, 0)->state);
+    printf("prev1: %s\n", commit->prev[0]->commit_id);
+    printf("prev2: %p\n", commit->prev[1]);
+    printf("-------\n");
+
+    assert(svc_branch(helper, "random_branch") == 0);
+
+    assert(svc_checkout(helper, "random_branch") == 0);
+    
+    char buf2[] = "#include \"svc.h\"\nvoid *svc_init(void) {\n    return NULL;\n}\n";
+    fp = fopen("COMP2017/svc.c", "w");
+    fputs(buf2,fp);
+    fclose(fp);
+
+    branch = svc->head;
+    printf("%s\n", branch->name);
+    stage_t *stage = svc->stage;
+
+    for (int i = 0; i < stage->tracked_file->size; i++) {
+        printf("Before removal: the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
+                        file_t_dyn_array_get(stage->tracked_file,i)->state);
+    }
+    printf("--------\n");
+
+    assert(svc_rm(helper, "COMP2017/svc.h") == 5007);
+
+    stage = svc->stage;
+    for (int i = 0; i < stage->tracked_file->size; i++) {
+        printf("After removal: the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
+                        file_t_dyn_array_get(stage->tracked_file,i)->state);
+    }
+    printf("--------\n");
+
+    assert(strcmp(svc_commit(helper, "Implemented svc_init"), "73eacd") == 0);
+
+    branch = svc->head;
+    printf("%s\n", branch->name);
+    commit = commit_t_dyn_array_get(branch->commit, 0);
+
+    assert(svc_reset(helper, "7b3e30") == 0);
+
+    stage = svc->stage;
+    for (int i = 0; i < stage->tracked_file->size; i++) {
+        printf("After reset: the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
+                        file_t_dyn_array_get(stage->tracked_file,i)->state);    }
+    printf("------\n");
+    
+    // printf("first commit\n");
+    // printf("%s\n", commit->commit_id);
+    // printf("%ld\n", commit->n_prev);
+    // printf("%s %d\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path, file_t_dyn_array_get(commit->commited_file, 0)->state);
+    // printf("%s %d\n",file_t_dyn_array_get(commit->commited_file, 1)->file_path, file_t_dyn_array_get(commit->commited_file, 1)->state);
+    // printf("prev1: %s\n", commit->prev[0]->commit_id);
+    // printf("prev2: %p\n", commit->prev[1]);
+    // printf("-------\n");
+
+    branch = svc->head;
+    printf("%s\n", branch->name);
+    commit = commit_t_dyn_array_get(branch->commit, 1);
+    stage = svc->stage;
+
+    printf("second commit\n");
+    printf("%s\n", commit->commit_id);
+    printf("%ld\n", commit->n_prev);
+    printf("%s %d\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path, file_t_dyn_array_get(commit->commited_file, 0)->state);
+    printf("%s %d\n",file_t_dyn_array_get(commit->commited_file, 1)->file_path, file_t_dyn_array_get(commit->commited_file, 1)->state);
+    printf("prev1: %s\n", commit->prev[0]->commit_id);
+    printf("prev2: %p\n", commit->prev[1]);
+    printf("--------\n");
+
+
+    // stage = svc->stage;
+    // for (int i = 0; i < stage->tracked_file->size; i++) {
+    //     printf("Before rewrite : the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
+    //                     file_t_dyn_array_get(stage->tracked_file,i)->state);    }
+    // printf("------\n");
+
+    //Then we rewrite the svc.c
+    fp = fopen("COMP2017/svc.c", "w");
+    fputs(buf2,fp);
+    
+    fclose(fp);
+
+    printf("%s\n",svc_commit(helper, "Implemented svc_init"));
+
+    // stage = svc->stage;
+    // for (int i = 0; i < stage->tracked_file->size; i++) {
+    //     printf("After rewrite : the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
+    //                     file_t_dyn_array_get(stage->tracked_file,i)->state);    }
+    // printf("------\n");
+
+    branch = svc->head;
+    printf("%s\n", branch->name);
+
+    commit = commit_t_dyn_array_get(branch->commit, 2);
+    stage = svc->stage;
+    
+    printf("third commit\n");
+    printf("%s\n", commit->commit_id);
+    printf("%ld\n", commit->n_prev);
+    printf("%s %d\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path, file_t_dyn_array_get(commit->commited_file, 0)->state);
+    printf("%s %d\n", file_t_dyn_array_get(commit->commited_file, 1)->file_path, file_t_dyn_array_get(commit->commited_file, 1)->state);
+    printf("prev1: %s\n", commit->prev[0]->commit_id);
+    printf("prev2: %p\n", commit->prev[1]);
+    printf("-------\n");
+
+    // printf("%d\n",hash_file(helper, "COMP2017/svc.c"));
+
+
+    // assert(strcmp(svc_commit(helper, "Implemented svc_init"), "24829b") == 0);
+
+
+
+
+
     cleanup(helper);
 }
 

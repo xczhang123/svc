@@ -92,6 +92,38 @@ int hash_file(void *helper, char *file_path) {
 
     return hash;
 }
+  
+int compare(const void* a, const void* b) {
+    // puts("dadsa\n");
+    file_t **file1 = ((file_t**)a);
+    file_t **file2 = ((file_t**)b);   
+
+    char *aa = (*file1)->file_content;
+    char *bb = (*file2)->file_content;
+
+    int n = strlen(aa) <= strlen(bb) ? strlen(aa) : strlen(bb);
+    for (int i = 0; i < n; i++) {
+        if (aa[i] != bb[i]) {
+            if (tolower(aa[i]) == tolower(bb[i])) { //Compare by ASCII values
+                if ((aa[i] > bb[i])) {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            } else {
+                return strcasecmp(aa, bb); //case insensitive
+            }
+        }
+    }
+
+    //All characters are same so far
+    if (strlen(aa) > strlen(bb)) {
+        return 1;
+    } else { //strlen(aa) < strlen(bb)
+        return -1;
+    }
+
+}
 
 
 void set_commit_id(commit_t *commit) {
@@ -101,38 +133,8 @@ void set_commit_id(commit_t *commit) {
         id = (id + (unsigned char)commit->message[i]) % 1000;
     }
 
-    //Sort the committed files in alphabetical order
-    for (int i = 0; i < commit->commited_file->size; i++) {
-        for (int j = 0; j < commit->commited_file->size-i-1; j++) {
-
-            file_t *file1 = file_t_dyn_array_get(commit->commited_file, j);
-            file_t *file2 = file_t_dyn_array_get(commit->commited_file, j+1);
-
-            char *name1 = strdup(file1->file_path);
-            for (size_t i = 0; i < strlen(name1); i++) {
-                name1[i] = tolower(name1[i]);
-            }
-            char *name2 = strdup(file2->file_path);
-            for (size_t i = 0; i < strlen(name2); i++) {
-                name2[i] = tolower(name2[i]);
-            }
-            //printf("name1: %s, name2: %s %d\n",name1,name2,strcmp(name1, name2));
-
-            if (strcmp(name1, name2) > 0) {
-
-                file_t *temp = malloc(sizeof(file_t));
-
-                memcpy(temp, file1, sizeof(file_t));
-                memcpy(file1, file2, sizeof(file_t));
-                memcpy(file2, temp, sizeof(file_t));
-
-                free(temp);
-
-            }
-            free(name1);
-            free(name2);
-        }
-    }
+    //Sort file name in alphabetic order
+    qsort(commit->commited_file->file, commit->commited_file->size, sizeof(file_t*), &compare); 
 
     // printf("1st %s\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path);
     // printf("2nd %s\n", file_t_dyn_array_get(commit->commited_file, 1)->file_path);
@@ -141,20 +143,16 @@ void set_commit_id(commit_t *commit) {
     //For unsigned byte in change.file_name
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
-
+        
         if (file->state == ADDED) {
             id += 376591;
         } else if (file->state == REMOVED) {
             id += 85973;
         } else if (file->state == CHANGED) {
             id += 9573681;
-        }
-
-        // printf("id is: %d\n", id);
+        } //else if it is default, we do nothing
 
         for (size_t j = 0; j < strlen(file->file_path); j++) {
-            // printf("character is: %d\n", (unsigned char)file->file_path[j] );
-            // printf("id is: %d\n", id);
             id = (id * ((unsigned char)file->file_path[j] % 37)) % 15485863 + 1;
         }
         // printf("id is: %d\n", id);
@@ -162,7 +160,7 @@ void set_commit_id(commit_t *commit) {
 
     // printf("id is: %d\n", id);
 
-    sprintf(commit->commit_id, "%06x", id);
+    snprintf(commit->commit_id, 7 , "%06x", id);
 }
 
 char *svc_commit(void *helper, char *message) {
@@ -242,7 +240,7 @@ char *svc_commit(void *helper, char *message) {
 
     commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //get current commit
 
-    //Now we handle REMOVED or CHANGED files
+    //Now we handle REMOVED or CHANGED files and ADDED(after removal)
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *new_file = file_t_dyn_array_get(commit->commited_file, i);
 
@@ -251,13 +249,20 @@ char *svc_commit(void *helper, char *message) {
         for (int j = 0; j < stage->tracked_file->size; j++) {
             file_t *tracked_file = file_t_dyn_array_get(stage->tracked_file, j);
 
-            if (strcmp(new_file->file_path, tracked_file->file_path) == 0) {
+            if (strcmp(new_file->file_path, tracked_file->file_path) == 0 && new_file->state == ADDED) {
                 if (new_file->hash != tracked_file->hash) {
                     new_file->state = CHANGED;
                     new_file->previous_hash = new_file->hash;
                     new_file->hash = tracked_file->hash;
+                }
+                found = 1;
+            } else if (strcmp(new_file->file_path, tracked_file->file_path) == 0 && new_file->state == REMOVED) {
+                found = 1;
+                new_file->state = ADDED;
+            } else if (strcmp(new_file->file_path, tracked_file->file_path) == 0) {
+                if (new_file->hash == tracked_file->hash) {
                     found = 1;
-                    break;
+                    new_file->state = DEFAULT; //no change
                 }
             }
         }
@@ -266,7 +271,7 @@ char *svc_commit(void *helper, char *message) {
         }
     }
 
-    //Now we handle ADDED
+    //Now we handle ADDED (brand-new)
     for (int i = 0; i < stage->tracked_file->size; i++) {
         file_t *tracked_file = file_t_dyn_array_get(stage->tracked_file, i);
 
@@ -285,6 +290,20 @@ char *svc_commit(void *helper, char *message) {
             file_t_dyn_array_add(commit->commited_file, tracked_file);
         }
     }
+
+    // for (int i = 0; i < commit->commited_file->size; i++) {
+    //     file_t *new_file = file_t_dyn_array_get(commit->commited_file, i);
+    //     for (int j = 0; j < last_commit->commited_file->size; j++) {
+
+    //          file_t *last_file = file_t_dyn_array_get(last_commit->commited_file, j);
+
+    //          if (strcmp(new_file->file_path, last_file->file_path) == 0) {
+    //              if (new_file->state == last_file->state) {
+    //                  new_file->state = DEFAULT; //No change
+    //              }
+    //          }
+    //     }
+    // }
 
     set_commit_id(commit);
     stage->not_changed = 1;
@@ -456,6 +475,7 @@ int svc_branch(void *helper, char *branch_name) {
     for (int i = 0; i < current_branch->commit->size; i++) {
         commit_t_dyn_array_add_commit(new_branch->commit, 
                 commit_t_dyn_array_get(current_branch->commit, i));
+                // printf("HAHAdsad\n");
     }
     new_branch->name = strdup(branch_name); // Set the name field
 
@@ -675,6 +695,7 @@ int svc_reset(void *helper, char *commit_id) {
     svc_t *svc = ((struct svc*)helper);
     branch_t *branch = svc->head;
     commit_t *current_commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index);
+    stage_t *stage = svc->stage;
 
     int found = 0;
     int index = -1;
@@ -711,7 +732,27 @@ int svc_reset(void *helper, char *commit_id) {
         if (file->state == CHANGED || file->state == ADDED) {
             FILE *fp = fopen(file->file_path, "w");
             fputs(file->file_content, fp); //Restore all changes
+            fclose(fp);
         }
+    }
+
+    // Restore stage to the same as new_commmit
+    file_t_dyn_array_free(stage->tracked_file);
+
+    stage->not_changed = 1;
+    stage->tracked_file = file_t_dyn_array_init();
+
+    //Track all files in previous commit
+    for (int i = 0; i < new_commit->commited_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(new_commit->commited_file, i);
+        if (file->state != REMOVED) {
+            file_t_dyn_array_add(stage->tracked_file, file);
+        } 
+    }
+
+    for (int i = 0; i < stage->tracked_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
+        file->state = ADDED;
     }
 
     branch->commit->last_commit_index = index;

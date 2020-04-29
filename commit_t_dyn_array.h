@@ -16,7 +16,7 @@
 */
 
 typedef struct commit {
-    char commit_id[6];
+    char commit_id[7];
     char *message;
     struct file_t_dyn_array *commited_file;
     struct commit *prev[2];
