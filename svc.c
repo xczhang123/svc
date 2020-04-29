@@ -652,13 +652,13 @@ int svc_rm(void *helper, char *file_name) {
     if (file_to_be_deleted_hash == -1) {
         return -2;
     }
-    
+
     //If the file does not exists: return -3
     FILE* fp;
     if ((fp=fopen(copied_file_name, "r")) == NULL) {
+        free(copied_file_name);
         return -3;
     }
-    free(copied_file_name);
 
     //After we have successfully deleted the file
 
