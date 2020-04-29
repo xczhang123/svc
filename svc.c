@@ -628,6 +628,7 @@ int svc_rm(void *helper, char *file_name) {
 
     svc_t *svc = ((struct svc*)helper);
     branch_t *branch = svc->head;
+    char *copied_file_name = strdup(file_name);
 
     //If the file name is NULL: return -1
     if (file_name == NULL) {
@@ -651,8 +652,7 @@ int svc_rm(void *helper, char *file_name) {
     if (file_to_be_deleted_hash == -1) {
         return -2;
     }
-
-    char *copied_file_name = strdup(file_name);
+    
     //If the file does not exists: return -3
     FILE* fp;
     if ((fp=fopen(copied_file_name, "r")) == NULL) {
