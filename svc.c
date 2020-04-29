@@ -207,23 +207,27 @@ char *svc_commit(void *helper, char *message) {
         return NULL;
     }
 
-    //We are guaranteed we have updated all files
+    //We are guaranteed we have updated all maually changed files
 
     //Special case: when it is the first commit
     if (branch->commit->last_commit_index == -1) {
         //Forcefully mark all files as ADDED
-        for (int i = 0; i < stage->tracked_file->size; i++) {
-            file_t_dyn_array_get(stage->tracked_file, i)->state = ADDED;
+        //If if is the first commit in the branch
+        if (branch->commit->size == 0) {
+            for (int i = 0; i < stage->tracked_file->size; i++) {
+                file_t_dyn_array_get(stage->tracked_file, i)->state = ADDED;
+                
+            }
+            commit_t *prev[2] = {NULL, NULL};
+            commit_t_dyn_array_add(branch->commit, stage, message, 0, prev);
+
+            commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //Get the last commit
+            set_commit_id(commit);
+
+            stage->not_changed = 1;
+
+            return commit->commit_id;
         }
-        commit_t *prev[2] = {NULL, NULL};
-        commit_t_dyn_array_add(branch->commit, stage, message, 0, prev);
-
-        commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //Get the last commit
-        set_commit_id(commit);
-
-        stage->not_changed = 1;
-
-        return commit->commit_id;
     }
 
     //Normal case
@@ -562,7 +566,7 @@ int svc_add(void *helper, char *file_name) {
     //Store new_file in the svc system stage field
     file_t_dyn_array_add(stage->tracked_file, new_file);
 
-    //There are some uncommitted changes (addition of one)
+    //There are some uncommitted changes (addition of one file)
 
     //If it is the first commit
     if (branch->commit->last_commit_index == -1) {
@@ -663,7 +667,54 @@ int svc_rm(void *helper, char *file_name) {
 }
 
 int svc_reset(void *helper, char *commit_id) {
-    // TODO: Implement
+
+    if (commit_id == NULL) {
+        return -1;
+    }
+
+    svc_t *svc = ((struct svc*)helper);
+    branch_t *branch = svc->head;
+    commit_t *current_commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index);
+
+    int found = 0;
+    int index = -1;
+    for (int i = 0; i < branch->commit->size; i++) {
+        commit_t *pre_commit = commit_t_dyn_array_get(branch->commit, i);
+
+        //We can not reset forward
+        if (pre_commit == current_commit) {
+            break;
+        }
+
+        if (strcmp(pre_commit->commit_id, commit_id) == 0) {
+            found = 1;
+            index = i;
+            break;
+        }
+    }
+
+    if (!found) {
+        return -2;
+    }
+
+    for (int i = 0; i < current_commit->commited_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(current_commit->commited_file, i);
+        if (file->state == CHANGED || file->state == ADDED) {
+            remove(file->file_path); //Undo all changes
+        }
+    }
+
+    commit_t *new_commit = commit_t_dyn_array_get(branch->commit, index);
+
+    for (int i = 0; i < new_commit->commited_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(new_commit->commited_file, i);
+        if (file->state == CHANGED || file->state == ADDED) {
+            FILE *fp = fopen(file->file_path, "w");
+            fputs(file->file_content, fp); //Restore all changes
+        }
+    }
+
+    branch->commit->last_commit_index = index;
     return 0;
 }
 
