@@ -652,11 +652,13 @@ int svc_rm(void *helper, char *file_name) {
         return -2;
     }
 
+    char *copied_file_name = strdup(file_name);
     //If the file does not exists: return -3
     FILE* fp;
-    if ((fp=fopen(file_name, "r")) == NULL) {
+    if ((fp=fopen(copied_file_name, "r")) == NULL) {
         return -3;
     }
+    free(copied_file_name);
 
     //After we have successfully deleted the file
 
