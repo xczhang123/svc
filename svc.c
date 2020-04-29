@@ -143,7 +143,7 @@ void set_commit_id(commit_t *commit) {
     //For unsigned byte in change.file_name
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
-        
+        // printf("%s\n, %d\n",file->file_path, file->state);
         if (file->state == ADDED) {
             id += 376591;
         } else if (file->state == REMOVED) {
@@ -174,9 +174,8 @@ char *svc_commit(void *helper, char *message) {
         FILE *fp;
         if ((fp=fopen(file->file_path, "r")) == NULL) {
             //User has manually deleted the file from the file system
-            file_t_dyn_array_delete_index(stage->tracked_file, i);
+            svc_rm(helper, file->file_path);
             i--;
-            stage->not_changed = 0;
         } else {//We recalculate the hash value for each file
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
@@ -244,26 +243,30 @@ char *svc_commit(void *helper, char *message) {
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *new_file = file_t_dyn_array_get(commit->commited_file, i);
 
+        // printf("new_file %s\n", new_file->file_path);
+
         int found = 0;
 
         for (int j = 0; j < stage->tracked_file->size; j++) {
             file_t *tracked_file = file_t_dyn_array_get(stage->tracked_file, j);
+
+            // printf("tracked_file %s\n", tracked_file->file_path);
+            // printf("path is %d\n", strcmp(new_file->file_path, tracked_file->file_path));
+            // printf("new_file state %d\n", new_file->state);
+            // printf("%d\n", new_file->hash == tracked_file->hash );
 
             if (strcmp(new_file->file_path, tracked_file->file_path) == 0 && new_file->state == ADDED) {
                 if (new_file->hash != tracked_file->hash) {
                     new_file->state = CHANGED;
                     new_file->previous_hash = new_file->hash;
                     new_file->hash = tracked_file->hash;
+                } else {
+                    new_file->state = DEFAULT;
                 }
                 found = 1;
             } else if (strcmp(new_file->file_path, tracked_file->file_path) == 0 && new_file->state == REMOVED) {
                 found = 1;
                 new_file->state = ADDED;
-            } else if (strcmp(new_file->file_path, tracked_file->file_path) == 0) {
-                if (new_file->hash == tracked_file->hash) {
-                    found = 1;
-                    new_file->state = DEFAULT; //no change
-                }
             }
         }
         if (!found) {

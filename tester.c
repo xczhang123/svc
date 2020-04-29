@@ -182,14 +182,14 @@ int example2() {
     commit = commit_t_dyn_array_get(branch->commit, 1);
     stage = svc->stage;
 
-    printf("second commit\n");
-    printf("%s\n", commit->commit_id);
-    printf("%ld\n", commit->n_prev);
-    printf("%s %d\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path, file_t_dyn_array_get(commit->commited_file, 0)->state);
-    printf("%s %d\n",file_t_dyn_array_get(commit->commited_file, 1)->file_path, file_t_dyn_array_get(commit->commited_file, 1)->state);
-    printf("prev1: %s\n", commit->prev[0]->commit_id);
-    printf("prev2: %p\n", commit->prev[1]);
-    printf("--------\n");
+    // printf("second commit\n");
+    // printf("%s\n", commit->commit_id);
+    // printf("%ld\n", commit->n_prev);
+    // printf("%s %d\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path, file_t_dyn_array_get(commit->commited_file, 0)->state);
+    // printf("%s %d\n",file_t_dyn_array_get(commit->commited_file, 1)->file_path, file_t_dyn_array_get(commit->commited_file, 1)->state);
+    // printf("prev1: %s\n", commit->prev[0]->commit_id);
+    // printf("prev2: %p\n", commit->prev[1]);
+    // printf("--------\n");
 
 
     // stage = svc->stage;
@@ -199,18 +199,28 @@ int example2() {
     // printf("------\n");
 
     //Then we rewrite the svc.c
+    //both changed
     fp = fopen("COMP2017/svc.c", "w");
     fputs(buf2,fp);
     
     fclose(fp);
 
+    // remove("COMP2017/svc.h");
+    // fp = fopen("COMP2017/svc.h", "w");
+    // fputs(buf2,fp);
+    // fclose(fp);
+
+    // remove("COMP2017/svc.c");
+    // remove("COMP2017/svc.h");
+
     printf("%s\n",svc_commit(helper, "Implemented svc_init"));
 
-    // stage = svc->stage;
-    // for (int i = 0; i < stage->tracked_file->size; i++) {
-    //     printf("After rewrite : the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
-    //                     file_t_dyn_array_get(stage->tracked_file,i)->state);    }
-    // printf("------\n");
+    stage = svc->stage;
+    for (int i = 0; i < stage->tracked_file->size; i++) {
+        printf("After rewrite : the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
+                        file_t_dyn_array_get(stage->tracked_file,i)->state);    }
+    printf("------\n");
+
 
     branch = svc->head;
     printf("%s\n", branch->name);
@@ -233,10 +243,11 @@ int example2() {
     // assert(strcmp(svc_commit(helper, "Implemented svc_init"), "24829b") == 0);
 
 
-
+    //assert(svc_reset(helper, "7b3e30") == 0);
 
 
     cleanup(helper);
+    return 1;
 }
 
 
