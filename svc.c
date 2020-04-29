@@ -628,12 +628,13 @@ int svc_rm(void *helper, char *file_name) {
 
     svc_t *svc = ((struct svc*)helper);
     branch_t *branch = svc->head;
-    char *copied_file_name = strdup(file_name);
 
     //If the file name is NULL: return -1
     if (file_name == NULL) {
         return -1;
     }
+
+    char *copied_file_name = strdup(file_name);
 
     stage_t *stage = ((struct svc*)helper)->stage;
 
@@ -650,6 +651,7 @@ int svc_rm(void *helper, char *file_name) {
 
     //If the file with the given name is not being tracked
     if (file_to_be_deleted_hash == -1) {
+        free(copied_file_name);
         return -2;
     }
 
@@ -688,6 +690,7 @@ int svc_rm(void *helper, char *file_name) {
             }
         }
     }
+    free(copied_file_name);
     return file_to_be_deleted_hash;
 }
 
