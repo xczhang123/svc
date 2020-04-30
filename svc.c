@@ -910,7 +910,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     //Now we have incorporated all state changes of the files in stage
 
     //consturct the message
-    char message[14+50+1] = "";
+    char message[14+50+1];
     sprintf(message, "Merged branch %s", branch_name);
     // strcat(message, "Merged branch ");
     // strcat(message, branch_name);
