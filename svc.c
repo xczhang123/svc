@@ -319,6 +319,8 @@ char *svc_commit(void *helper, char *message) {
 //DONE
 void *get_commit(void *helper, char *commit_id) {
 
+    printf("We try to get the commit id %s\n", commit_id);
+
     if (commit_id == NULL) {
         return NULL;
     }
@@ -343,6 +345,8 @@ void *get_commit(void *helper, char *commit_id) {
 
 //DONE
 char **get_prev_commits(void *helper, void *commit, int *n_prev) {
+
+    printf("We try to get previous commit of %s\n", ((struct commit*)commit)->commit_id);
 
     (void)helper;
 
@@ -375,6 +379,8 @@ char **get_prev_commits(void *helper, void *commit, int *n_prev) {
 }
 
 void print_commit(void *helper, char *commit_id) {
+
+    printf("We try to print the commit\n");
 
     if (commit_id == NULL) {
         puts("Invalid commit id");
@@ -535,6 +541,8 @@ int svc_checkout(void *helper, char *branch_name) {
 
 //DONE
 char **list_branches(void *helper, int *n_branches) {
+
+    printf("We listed the branches\n");
     
     if (n_branches == NULL) {
         return NULL;
