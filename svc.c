@@ -140,7 +140,7 @@ void set_commit_id(commit_t *commit) {
     //For unsigned byte in change.file_name
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
-        printf("file is: %s\n, file state is %d\n",file->file_path, file->state);
+        printf("file is: %s, file state is %d\n",file->file_path, file->state);
         if (file->state == ADDED) {
             id += 376591;
         } else if (file->state == REMOVED) {
