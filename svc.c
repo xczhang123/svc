@@ -895,8 +895,8 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
 
                     free(file_in_stage->file_content);
                     file_in_stage->file_content = strdup(file_contents);
-                    free(file_in_stage->file_path);
-                    file_in_stage->file_path = strdup(resolutions[i].resolved_file);
+                    // free(file_in_stage->file_path);
+                    // file_in_stage->file_path = strdup(resolutions[i].resolved_file);
                     file_in_stage->previous_hash = file_in_stage->hash;
                     file_in_stage->hash = hash_file(helper, file_in_stage->file_path);
                     file_in_stage->state = CHANGED;
@@ -910,7 +910,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     //Now we have incorporated all state changes of the files in stage
 
     //consturct the message
-    char message[14+50+1] = {0};
+    char message[14+50+1] = "";
     sprintf(message, "Merged branch %s", branch_name);
     // strcat(message, "Merged branch ");
     // strcat(message, branch_name);
