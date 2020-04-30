@@ -918,6 +918,8 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
 
     printf("Merge successful\n");
 
-    printf("After calling merge, we have the new commit id %s", new_commit->commit_id);
+    printf("After calling merge, we have the new commit id %s\n", new_commit->commit_id);
+    printf("The message is %s\n", message);
+
     return new_commit->commit_id;
 }
