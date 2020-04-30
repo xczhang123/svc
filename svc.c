@@ -201,38 +201,36 @@ char *svc_commit(void *helper, char *message) {
     }
 
     //If there is no commit and the tracked file is empty or there are no changes since the last commit
-    if ((branch->commit->last_commit_index == -1 && stage->tracked_file->size == 0) || stage->not_changed == 1) {
+    if ((branch->commit->last_commit_index == -1 && stage->tracked_file->size == 0) || stage->not_changed == 1 || message == NULL) {
         // printf("message %s\n", message);
         return NULL;
     }
 
     //We are guaranteed we have updated all maually changed files
 
-    //Special case: when it is the very first commit in the system
+    //Special case: when it does not have previous commit
     if (branch->commit->last_commit_index == -1) {
         //If if is the first commit in the branch
-        if (branch->commit->size == 0) {
-            for (int i = 0; i < stage->tracked_file->size; i++) {
-                file_t_dyn_array_get(stage->tracked_file, i)->state = ADDED;
-            }
-            commit_t *prev[2] = {NULL, NULL};
-            commit_t_dyn_array_add(branch->commit, stage, message, 0, prev);
-
-            //Undo the mark on tracked files
-            for (int i = 0; i < stage->tracked_file->size; i++) {
-                file_t_dyn_array_get(stage->tracked_file, i)->state = DEFAULT;
-            }
-
-            commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //Get the last commit
-            set_commit_id(commit);
-
-            stage->not_changed = 1;
-
-            return commit->commit_id;
+        for (int i = 0; i < stage->tracked_file->size; i++) {
+            file_t_dyn_array_get(stage->tracked_file, i)->state = ADDED;
         }
+        commit_t *prev[2] = {NULL, NULL};
+        commit_t_dyn_array_add(branch->commit, stage, message, 0, prev);
+
+        //Undo the mark on tracked files
+        for (int i = 0; i < stage->tracked_file->size; i++) {
+            file_t_dyn_array_get(stage->tracked_file, i)->state = DEFAULT;
+        }
+
+        commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //Get the last commit
+        set_commit_id(commit);
+
+        stage->not_changed = 1;
+
+        return commit->commit_id;
     }
 
-    //Normal case
+    //When it does have previous commit
     commit_t *last_commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index);
 
     commit_t *prev[2] = {last_commit, NULL};
