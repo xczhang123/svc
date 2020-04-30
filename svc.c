@@ -149,10 +149,11 @@ void set_commit_id(commit_t *commit) {
             id += 9573681;
         } //else if it is default, we do nothing
         printf("State Middle id: %d\n", id);
-
-        for (size_t j = 0; j < strlen(file->file_path); j++) {
-            id = (id * ((unsigned char)file->file_path[j] % 37)) % 15485863 + 1;
-            printf("Middle id: %d\n", id);
+        if (file->state != DEFAULT) {
+            for (size_t j = 0; j < strlen(file->file_path); j++) {
+                id = (id * ((unsigned char)file->file_path[j] % 37)) % 15485863 + 1;
+                printf("Middle id: %d\n", id);
+            }
         }
         // printf("id is: %d\n", id);
     }
