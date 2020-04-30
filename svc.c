@@ -695,7 +695,7 @@ int svc_rm(void *helper, char *file_name) {
 
 int svc_reset(void *helper, char *commit_id) {
 
-    printf("We reset to the commit %d\n", commit_id);
+    printf("We reset to the commit %s\n", commit_id);
 
     if (commit_id == NULL) {
         return -1;
@@ -711,8 +711,8 @@ int svc_reset(void *helper, char *commit_id) {
     for (int i = 0; i < branch->commit->size; i++) {
         commit_t *pre_commit = commit_t_dyn_array_get(branch->commit, i);
 
-        //We can not reset forward
-        if (pre_commit == current_commit) {
+        //We can not reset forward or not a simple path
+        if (pre_commit == current_commit || pre_commit->n_prev == 2) {
             break;
         }
 
