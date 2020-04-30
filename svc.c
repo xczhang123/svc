@@ -740,13 +740,6 @@ int svc_reset(void *helper, char *commit_id) {
         return -2;
     }
 
-    // for (int i = 0; i < current_commit->commited_file->size; i++) {
-    //     file_t *file = file_t_dyn_array_get(current_commit->commited_file, i);
-    //     if (file->state == CHANGED || file->state == ADDED) {
-    //         remove(file->file_path); //Undo all changes
-    //     }
-    // }
-
     commit_t *new_commit = commit_t_dyn_array_get(branch->commit, index);
 
     for (int i = 0; i < new_commit->commited_file->size; i++) {
@@ -778,14 +771,148 @@ int svc_reset(void *helper, char *commit_id) {
         file->state = DEFAULT;
     }
 
-    printf("After reset: the ");
-
     branch->commit->last_commit_index = index;
     return 0;
 }
 
 char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions, int n_resolutions) {
-    printf("Not Implemented\n");
-    // TODO: Implement
-    return NULL;
+    if (branch_name == NULL) {
+        printf("Invalid branch name\n");
+        return NULL;
+    }
+
+    svc_t *svc = ((struct svc*)helper);
+    branch_t *current_branch = svc->head;
+    commit_t *current_commit = commit_t_dyn_array_get(current_branch->commit, current_branch->commit->last_commit_index);
+    stage_t *stage = svc->stage;
+
+    int found = 0;
+    int index = -1;
+    for (int i = 0; i < svc->size; i++) {
+        branch_t *branch = svc->branch[i];
+
+        if (strcmp(branch->name, branch_name) == 0) {
+            index = i;
+            found = 1;
+        }
+    }
+
+    if (!found) {
+        printf("Branch not found\n");
+        return NULL;
+    }
+
+    //If the given name is the currently checked out branch
+    if (strcmp(branch_name, current_branch->name) == 0) {
+        printf("Cannot merge a branch with itself\n");
+        return NULL;
+    }
+
+    //If there are uncommitted changes
+    if (stage->not_changed == 0) {
+        printf("Changes must be committed\n");
+        return NULL;
+    }
+
+    branch_t *merged_branch = svc->branch[index];
+
+    commit_t *merged_branch_commit = commit_t_dyn_array_get(merged_branch->commit, merged_branch->commit->last_commit_index);
+
+    //We use stage as temporary storage for the changes
+    file_t_dyn_array_free(stage->tracked_file);
+    stage->tracked_file = file_t_dyn_array_init();
+
+    //Add previous commit to the new commit
+    for (int i = 0; i < current_commit->commited_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(current_commit->commited_file, i);
+        int state = file->state;
+        file->state = DEFAULT; //Not changed since it is comparing the previous commit
+        file_t_dyn_array_add(stage->tracked_file, file);
+        file->state = state;
+    }
+
+    //If there are new files from the merged commit
+    for (int i = 0; i < merged_branch_commit->commited_file->size; i++) {
+        file_t *file1 = file_t_dyn_array_get(merged_branch_commit->commited_file, i);
+        int found = 0;
+        for (int j = 0; j < current_commit->commited_file->size; j++) {
+            file_t *file2 = file_t_dyn_array_get(current_commit->commited_file, j);
+            if (strcmp(file1->file_path, file2->file_path) == 0) {
+                found = 1;
+            }
+        }
+        if (!found) {
+            int state = file1->state;
+            file1->state = ADDED;
+            file_t_dyn_array_add(stage->tracked_file, file1);
+            file1->state = state;
+        }
+    }
+
+    //Now stage has all the files required that is either ADDED or DEFAULT
+
+    //Replace with those in the resolutions
+    for (int i = 0; i < n_resolutions; i++) {
+
+        if (resolutions[i].file_name == NULL) {
+            for (int j = 0; j < stage->tracked_file->size; j++) {
+                file_t *file = file_t_dyn_array_get(stage->tracked_file, j);
+                if (strcmp(file->file_path, resolutions[i].file_name) == 0) {
+                    file->state = REMOVED;
+                }
+            }
+        } else { //if there are resolutions available
+                //files are taken from the merged branch
+            for (int j = 0; j < stage->tracked_file->size; j++) {
+                file_t *file = file_t_dyn_array_get(stage->tracked_file, j);
+                if (strcmp(file->file_path, resolutions[i].file_name) == 0) {
+
+                    file_t *file_in_stage = file_t_dyn_array_get(stage->tracked_file, j);
+                    
+                    FILE *fp = fopen(file->file_path, "r");
+
+                    fseek(fp, 0, SEEK_END);
+                    long file_length = ftell(fp);
+                    fseek(fp, 0, SEEK_SET);
+                    char file_contents[file_length+1];
+                    file_contents[file_length] = '\0';
+                    fread(file_contents, sizeof(char), file_length, fp);
+                    fclose(fp);
+
+                    free(file_in_stage->file_content);
+                    file_in_stage->file_content = strdup(file_contents);
+                    free(file_in_stage->file_path);
+                    file_in_stage->file_path = strdup(resolutions[i].resolved_file);
+                    file_in_stage->previous_hash = file_in_stage->hash;
+                    file_in_stage->hash = hash_file(helper, file_in_stage->file_path);
+                    file_in_stage->state = CHANGED;
+
+                }
+            }
+        }
+    }
+    //Now we have incorporated all state changes of the files in stage
+
+    //consturct the message
+    char message[14+strlen(branch_name)+1];
+    memcpy(message, "Merged branch ", 14);
+    memcpy(message+14, branch_name, strlen(branch_name));
+    message[strlen(branch_name)] = '\0';
+
+    //Make the new commit from the stage
+    commit_t *prev[2] = {current_commit, merged_branch_commit};
+    commit_t_dyn_array_add(current_branch->commit, stage, message, 2, prev); 
+
+    commit_t *new_commit = commit_t_dyn_array_get(current_branch->commit, current_branch->commit->last_commit_index);
+    set_commit_id(new_commit);
+
+    //Reset the file state in the stage to DEFAULT
+    for (int i = 0; i < stage->tracked_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
+        file->state = DEFAULT;
+    }
+    stage->not_changed = 1;
+
+    printf("Merge successful\n");
+    return new_commit->commit_id;
 }
