@@ -176,11 +176,11 @@ char *svc_commit(void *helper, char *message) {
         file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
         FILE *fp;
         if ((fp=fopen(file->file_path, "r")) == NULL) {
+            printf("Manual removal detected! file name is %s\n", file->file_path);
             //User has manually deleted the file from the file system
             file_t_dyn_array_delete_file(stage->tracked_file, file);
             stage->not_changed = 0; //there must be some changes
             i--;
-            printf("Manual removal detected!\n");
         } else {//We recalculate the hash value for each file
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
