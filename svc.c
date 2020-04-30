@@ -156,8 +156,9 @@ void set_commit_id(commit_t *commit) {
     }
 
     // printf("id is: %d\n", id);
-
+    
     snprintf(commit->commit_id, 7 , "%06x", id);
+    
 }
 
 char *svc_commit(void *helper, char *message) {
@@ -166,6 +167,12 @@ char *svc_commit(void *helper, char *message) {
     
     stage_t *stage = (((struct svc*)helper)->stage);
     branch_t *branch = ((struct svc*)helper)->head;
+
+    //If there is no commit and the tracked file is empty or there are no changes since the last commit
+    if ((branch->commit->last_commit_index == -1 && stage->tracked_file->size == 0) || stage->not_changed == 1 || message == NULL) {
+        // printf("message %s\n", message);
+        return NULL;
+    }
 
     //First we automatically update the state of the tracked files
     for (int i = 0; i < stage->tracked_file->size; i++) {
@@ -197,12 +204,6 @@ char *svc_commit(void *helper, char *message) {
                 stage->not_changed = 0; //As long as we found one change, it's atomic
             }
         }
-    }
-
-    //If there is no commit and the tracked file is empty or there are no changes since the last commit
-    if ((branch->commit->last_commit_index == -1 && stage->tracked_file->size == 0) || stage->not_changed == 1 || message == NULL) {
-        // printf("message %s\n", message);
-        return NULL;
     }
 
     //We are guaranteed we have updated all maually changed files
@@ -303,7 +304,6 @@ char *svc_commit(void *helper, char *message) {
         }
     }
 
-    printf("The commit id before set is %s\n", commit->commit_id);
     set_commit_id(commit);
     stage->not_changed = 1;
 
