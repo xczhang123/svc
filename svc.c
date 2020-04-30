@@ -156,7 +156,7 @@ void set_commit_id(commit_t *commit) {
     }
 
     // printf("id is: %d\n", id);
-    
+    printf("Calculated commit id: %06x\n", id);
     snprintf(commit->commit_id, 7 , "%06x", id);
     
 }
