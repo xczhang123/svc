@@ -174,7 +174,8 @@ char *svc_commit(void *helper, char *message) {
         FILE *fp;
         if ((fp=fopen(file->file_path, "r")) == NULL) {
             //User has manually deleted the file from the file system
-            svc_rm(helper, file->file_path);
+            file_t_dyn_array_delete_file(stage->tracked_file, file);
+            stage->not_changed = 0; //there must be some changes
             i--;
         } else {//We recalculate the hash value for each file
             file->previous_hash = file->hash;
@@ -193,30 +194,34 @@ char *svc_commit(void *helper, char *message) {
                 file->file_content = realloc(file->file_content,sizeof(char)*(file_length+1)); //Realloc file_content field
                 memcpy(file->file_content, file_contents, file_length+1);
 
+
                 stage->not_changed = 0; //As long as we found one change, it's atomic
             }
         }
     }
 
     //If there is no commit and the tracked file is empty or there are no changes since the last commit
-    if ((branch->commit->size == 0 && stage->tracked_file->size == 0) || stage->not_changed == 1) {
+    if ((branch->commit->last_commit_index == -1 && stage->tracked_file->size == 0) || stage->not_changed == 1) {
         // printf("message %s\n", message);
         return NULL;
     }
 
     //We are guaranteed we have updated all maually changed files
 
-    //Special case: when it is the first commit
+    //Special case: when it is the very first commit in the system
     if (branch->commit->last_commit_index == -1) {
-        //Forcefully mark all files as ADDED
         //If if is the first commit in the branch
         if (branch->commit->size == 0) {
             for (int i = 0; i < stage->tracked_file->size; i++) {
                 file_t_dyn_array_get(stage->tracked_file, i)->state = ADDED;
-                
             }
             commit_t *prev[2] = {NULL, NULL};
             commit_t_dyn_array_add(branch->commit, stage, message, 0, prev);
+
+            //Undo the mark on tracked files
+            for (int i = 0; i < stage->tracked_file->size; i++) {
+                file_t_dyn_array_get(stage->tracked_file, i)->state = DEFAULT;
+            }
 
             commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //Get the last commit
             set_commit_id(commit);
@@ -239,7 +244,12 @@ char *svc_commit(void *helper, char *message) {
 
     commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //get current commit
 
-    //Now we handle REMOVED or CHANGED files and ADDED(after removal)
+    for (int i = 0; i < commit->commited_file->size; i++) {
+        file_t *new_file = file_t_dyn_array_get(commit->commited_file, i);
+        new_file->state = DEFAULT; //reset all the new file state to not changed (since it is the same as last commit)
+    }
+
+    //Now we handle REMOVED or CHANGED files
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *new_file = file_t_dyn_array_get(commit->commited_file, i);
 
@@ -255,21 +265,20 @@ char *svc_commit(void *helper, char *message) {
             // printf("new_file state %d\n", new_file->state);
             // printf("%d\n", new_file->hash == tracked_file->hash );
 
-            if (strcmp(new_file->file_path, tracked_file->file_path) == 0 && new_file->state == ADDED) {
+            if (strcmp(new_file->file_path, tracked_file->file_path) == 0) {
                 if (new_file->hash != tracked_file->hash) {
+                    free(new_file->file_content);
+                    new_file->file_content = strdup(tracked_file->file_content);
                     new_file->state = CHANGED;
                     new_file->previous_hash = new_file->hash;
                     new_file->hash = tracked_file->hash;
-                } else {
-                    new_file->state = DEFAULT;
                 }
                 found = 1;
-            } else if (strcmp(new_file->file_path, tracked_file->file_path) == 0 && new_file->state == REMOVED) {
-                found = 1;
-                new_file->state = ADDED;
             }
         }
         if (!found) {
+            free(new_file->file_content);
+            new_file->file_content = NULL;
             new_file->state = REMOVED;
         }
     }
@@ -290,23 +299,10 @@ char *svc_commit(void *helper, char *message) {
         if (!found) {
             //Add the file to the new commit
             tracked_file->state = ADDED;
-            file_t_dyn_array_add(commit->commited_file, tracked_file);
+            file_t_dyn_array_add(commit->commited_file, tracked_file); //Duplicate files and store in the new commit
+            tracked_file->state = DEFAULT;
         }
     }
-
-    // for (int i = 0; i < commit->commited_file->size; i++) {
-    //     file_t *new_file = file_t_dyn_array_get(commit->commited_file, i);
-    //     for (int j = 0; j < last_commit->commited_file->size; j++) {
-
-    //          file_t *last_file = file_t_dyn_array_get(last_commit->commited_file, j);
-
-    //          if (strcmp(new_file->file_path, last_file->file_path) == 0) {
-    //              if (new_file->state == last_file->state) {
-    //                  new_file->state = DEFAULT; //No change
-    //              }
-    //          }
-    //     }
-    // }
 
     set_commit_id(commit);
     stage->not_changed = 1;
@@ -478,7 +474,6 @@ int svc_branch(void *helper, char *branch_name) {
     for (int i = 0; i < current_branch->commit->size; i++) {
         commit_t_dyn_array_add_commit(new_branch->commit, 
                 commit_t_dyn_array_get(current_branch->commit, i));
-                // printf("HAHAdsad\n");
     }
     new_branch->name = strdup(branch_name); // Set the name field
 
@@ -584,39 +579,39 @@ int svc_add(void *helper, char *file_name) {
     new_file->file_path = strdup(file_name); //Set file_path field
     new_file->hash = hash_file(helper, file_name); //Set hash field
     new_file->previous_hash = new_file->hash; //Set previous hash
-    new_file->state = ADDED; //Set state field
+    new_file->state = DEFAULT; //Set state field
 
     //Store new_file in the svc system stage field
     file_t_dyn_array_add(stage->tracked_file, new_file);
 
-    //There are some uncommitted changes (addition of one file)
-
-    //If it is the first commit
+    //Determine whether there is a change that needs to be committed
+    //If it is the very first commit to the SVC system
     if (branch->commit->last_commit_index == -1) {
         if (stage->tracked_file->size != 0) {
-            stage->not_changed = 0;
+            stage->not_changed = 0; //changed
         } else {
-            stage->not_changed = 1;//Set it back to normal
+            stage->not_changed = 1;//not changed
         }
     } 
-    else { //Normal condition
+    else { //Normal case
         commit_t *commit =  commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index);
         commit_t *last_commit =  commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index-1);
-        if (last_commit == NULL) {
+        if (last_commit == NULL) {//It is the first commit
             if (stage->tracked_file->size != commit->commited_file->size) {
                 stage->not_changed = 0;
             } else {
-                stage->not_changed = 1; // Set it back to normal
+                stage->not_changed = 1; //not changed
             }
         } else {
             if (stage->tracked_file->size != last_commit->commited_file->size) {
                 stage->not_changed = 0; 
             } else {
-                stage->not_changed = 1;//Set it back to normal
+                stage->not_changed = 1;//changed
             }
         }
     }
 
+    //Free the constructed file_t object
     free(new_file->file_path);
     free(new_file->file_content);
     free(new_file);
@@ -634,8 +629,6 @@ int svc_rm(void *helper, char *file_name) {
         return -1;
     }
 
-    char *copied_file_name = strdup(file_name);
-
     stage_t *stage = ((struct svc*)helper)->stage;
 
     int file_to_be_deleted_hash = -1;
@@ -651,14 +644,12 @@ int svc_rm(void *helper, char *file_name) {
 
     //If the file with the given name is not being tracked
     if (file_to_be_deleted_hash == -1) {
-        free(copied_file_name);
         return -2;
     }
 
     //If the file does not exists: return -3
     FILE* fp;
-    if ((fp=fopen(copied_file_name, "r")) == NULL) {
-        free(copied_file_name);
+    if ((fp=fopen(file_name, "r")) == NULL) {
         return -3;
     }
 
@@ -690,7 +681,6 @@ int svc_rm(void *helper, char *file_name) {
             }
         }
     }
-    free(copied_file_name);
     return file_to_be_deleted_hash;
 }
 
@@ -744,7 +734,7 @@ int svc_reset(void *helper, char *commit_id) {
         }
     }
 
-    // Restore stage to the same as new_commmit
+    //Restore stage to the same as new_commmit
     file_t_dyn_array_free(stage->tracked_file);
 
     stage->not_changed = 1;
@@ -758,9 +748,10 @@ int svc_reset(void *helper, char *commit_id) {
         } 
     }
 
+    //Set tracked files state to DEFAULT
     for (int i = 0; i < stage->tracked_file->size; i++) {
         file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
-        file->state = ADDED;
+        file->state = DEFAULT;
     }
 
     branch->commit->last_commit_index = index;

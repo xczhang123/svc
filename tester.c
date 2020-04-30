@@ -104,14 +104,12 @@ int example2() {
     assert(svc_add(helper, "COMP2017/svc.h") == 5007);
 
     FILE *fp = fopen("COMP2017/svc.c", "w");
-
     char buf1[] = "# include \"svc.h\"\nvoid *svc_init(void) {\n    //TODO: implement\n}\n";
     fputs(buf1,fp);
     fclose(fp);
 
-    // printf("%d\n", hash_file(helper, "COMP2017/svc.c"));
-
     assert(svc_add(helper, "COMP2017/svc.c") == 5217);
+
     // printf("%s\n", svc_commit(helper, "Initial commit"));
     assert(strcmp(svc_commit(helper, "Initail commit"), "7b3e30") == 0);
 
@@ -139,20 +137,20 @@ int example2() {
     printf("%s\n", branch->name);
     stage_t *stage = svc->stage;
 
-    for (int i = 0; i < stage->tracked_file->size; i++) {
-        printf("Before removal: the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
-                        file_t_dyn_array_get(stage->tracked_file,i)->state);
-    }
-    printf("--------\n");
+    // for (int i = 0; i < stage->tracked_file->size; i++) {
+    //     printf("Before removal: the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
+    //                     file_t_dyn_array_get(stage->tracked_file,i)->state);
+    // }
+    // printf("--------\n");
 
     assert(svc_rm(helper, "COMP2017/svc.h") == 5007);
 
-    stage = svc->stage;
-    for (int i = 0; i < stage->tracked_file->size; i++) {
-        printf("After removal: the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
-                        file_t_dyn_array_get(stage->tracked_file,i)->state);
-    }
-    printf("--------\n");
+    // stage = svc->stage;
+    // for (int i = 0; i < stage->tracked_file->size; i++) {
+    //     printf("After removal: the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
+    //                     file_t_dyn_array_get(stage->tracked_file,i)->state);
+    // }
+    // printf("--------\n");
 
     assert(strcmp(svc_commit(helper, "Implemented svc_init"), "73eacd") == 0);
 
@@ -162,11 +160,11 @@ int example2() {
 
     assert(svc_reset(helper, "7b3e30") == 0);
 
-    stage = svc->stage;
-    for (int i = 0; i < stage->tracked_file->size; i++) {
-        printf("After reset: the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
-                        file_t_dyn_array_get(stage->tracked_file,i)->state);    }
-    printf("------\n");
+    // stage = svc->stage;
+    // for (int i = 0; i < stage->tracked_file->size; i++) {
+    //     printf("After reset: the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
+    //                     file_t_dyn_array_get(stage->tracked_file,i)->state);    }
+    // printf("------\n");
     
     // printf("first commit\n");
     // printf("%s\n", commit->commit_id);
@@ -202,7 +200,6 @@ int example2() {
     //both changed
     fp = fopen("COMP2017/svc.c", "w");
     fputs(buf2,fp);
-    
     fclose(fp);
 
     // remove("COMP2017/svc.h");
@@ -215,11 +212,11 @@ int example2() {
 
     printf("%s\n",svc_commit(helper, "Implemented svc_init"));
 
-    stage = svc->stage;
-    for (int i = 0; i < stage->tracked_file->size; i++) {
-        printf("After rewrite : the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
-                        file_t_dyn_array_get(stage->tracked_file,i)->state);    }
-    printf("------\n");
+    // stage = svc->stage;
+    // for (int i = 0; i < stage->tracked_file->size; i++) {
+    //     printf("After rewrite : the stage files are: %s state is: %d\n", file_t_dyn_array_get(stage->tracked_file, i)->file_path,
+    //                     file_t_dyn_array_get(stage->tracked_file,i)->state);    }
+    // printf("------\n");
 
 
     branch = svc->head;
