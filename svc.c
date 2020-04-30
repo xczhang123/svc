@@ -414,7 +414,15 @@ void print_commit(void *helper, char *commit_id) {
         }
     }
     puts("");
-    printf("    Tracked files (%d):\n", stage->tracked_file->size);
+
+    int tracked_file_size = 0;
+    for (int i = 0; i < commit->commited_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(commit->commited_file, i);
+        if (file->state != REMOVED) {
+            tracked_file_size++;
+        }
+    }
+    printf("    Tracked files (%d):\n", tracked_file_size);
 
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
