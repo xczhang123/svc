@@ -171,12 +171,6 @@ char *svc_commit(void *helper, char *message) {
     stage_t *stage = (((struct svc*)helper)->stage);
     branch_t *branch = ((struct svc*)helper)->head;
 
-    //If there is no commit and the tracked file is empty or there are no changes since the last commit
-    if ((branch->commit->last_commit_index == -1 && stage->tracked_file->size == 0) || stage->not_changed == 1 || message == NULL) {
-        // printf("message %s\n", message);
-        return NULL;
-    }
-
     //First we automatically update the state of the tracked files
     for (int i = 0; i < stage->tracked_file->size; i++) {
         file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
@@ -207,6 +201,12 @@ char *svc_commit(void *helper, char *message) {
                 stage->not_changed = 0; //As long as we found one change, it's atomic
             }
         }
+    }
+
+    //If there is no commit and the tracked file is empty or there are no changes since the last commit
+    if ((branch->commit->last_commit_index == -1 && stage->tracked_file->size == 0) || stage->not_changed == 1 || message == NULL) {
+        // printf("message %s\n", message);
+        return NULL;
     }
 
     //We are guaranteed we have updated all maually changed files

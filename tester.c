@@ -185,6 +185,7 @@ int example2() {
     fputs(buf2,fp);
     fclose(fp);
 
+
     // remove("COMP2017/svc.h");
     // fp = fopen("COMP2017/svc.h", "w");
     // fputs(buf2,fp);
