@@ -418,7 +418,9 @@ void print_commit(void *helper, char *commit_id) {
 
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
-        printf("    [%10d] %s\n", file->hash, file->file_path);
+        if (file->state != REMOVED) {
+            printf("    [%10d] %s\n", file->hash, file->file_path);
+        }
     }
 }
 
