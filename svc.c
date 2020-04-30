@@ -897,10 +897,10 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     //Now we have incorporated all state changes of the files in stage
 
     //consturct the message
-    char message[14+strlen(branch_name)+1];
-    memcpy(message, "Merged branch ", 14);
-    memcpy(message+14, branch_name, strlen(branch_name));
-    message[strlen(branch_name)] = '\0';
+    char message[14+50+1] = {0};
+    strcat(message, "Merged branch ");
+    strcat(message, branch_name);
+    message[strlen(message)] = '\0';
 
     //Make the new commit from the stage
     commit_t *prev[2] = {current_commit, merged_branch_commit};
