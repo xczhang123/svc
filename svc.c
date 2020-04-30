@@ -136,8 +136,10 @@ void set_commit_id(commit_t *commit) {
     //Sort file name in alphabetic order
     qsort(commit->commited_file->file, commit->commited_file->size, sizeof(file_t*), &compare); 
 
-    // printf("1st %s\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path);
-    // printf("2nd %s\n", file_t_dyn_array_get(commit->commited_file, 1)->file_path);
+    printf("1st %d\n", file_t_dyn_array_get(commit->commited_file, 0)->state);
+    printf("1st %s\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path);
+    printf("2nd %d\n", file_t_dyn_array_get(commit->commited_file, 1)->state);
+    printf("2nd %s\n", file_t_dyn_array_get(commit->commited_file, 1)->file_path);
 
     //for change in commit.changes in increasing alphabetical order of file_name:
     //For unsigned byte in change.file_name
@@ -164,6 +166,8 @@ void set_commit_id(commit_t *commit) {
 }
 
 char *svc_commit(void *helper, char *message) {
+
+    printf("This file name is %s\n", message);
     
     stage_t *stage = (((struct svc*)helper)->stage);
     branch_t *branch = ((struct svc*)helper)->head;
@@ -536,6 +540,8 @@ char **list_branches(void *helper, int *n_branches) {
 //DONE
 int svc_add(void *helper, char *file_name) {
 
+    printf("This file name is %s\n", file_name);
+
     svc_t *svc = ((struct svc*)helper);
     branch_t *branch = svc->head;
 
@@ -618,6 +624,8 @@ int svc_add(void *helper, char *file_name) {
 
 //DONE
 int svc_rm(void *helper, char *file_name) {
+
+    printf("This file name is %s\n", file_name);
 
     svc_t *svc = ((struct svc*)helper);
     branch_t *branch = svc->head;
