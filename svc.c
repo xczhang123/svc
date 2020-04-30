@@ -740,12 +740,12 @@ int svc_reset(void *helper, char *commit_id) {
         return -2;
     }
 
-    for (int i = 0; i < current_commit->commited_file->size; i++) {
-        file_t *file = file_t_dyn_array_get(current_commit->commited_file, i);
-        if (file->state == CHANGED || file->state == ADDED) {
-            remove(file->file_path); //Undo all changes
-        }
-    }
+    // for (int i = 0; i < current_commit->commited_file->size; i++) {
+    //     file_t *file = file_t_dyn_array_get(current_commit->commited_file, i);
+    //     if (file->state == CHANGED || file->state == ADDED) {
+    //         remove(file->file_path); //Undo all changes
+    //     }
+    // }
 
     commit_t *new_commit = commit_t_dyn_array_get(branch->commit, index);
 
