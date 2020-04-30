@@ -388,17 +388,19 @@ void print_commit(void *helper, char *commit_id) {
     }
 
     svc_t *svc = ((struct svc*)helper);
-    branch_t *branch = svc->head;
+    branch_t *branch;
 
     int found = 0;
     int index = -1;
-    for (int i = 0; i < branch->commit->size; i++) {
-        commit_t *commit = commit_t_dyn_array_get(branch->commit, i);
-        if (strcmp(commit->commit_id, commit_id) == 0) {
-            found = 1;
-            index = i;
+    for (int i = 0; i < svc->size; i++)
+        branch = svc->branch[i];
+        for (int j = 0; j < branch->commit->size; j++) {
+            commit_t *commit = commit_t_dyn_array_get(branch->commit, j);
+            if (strcmp(commit->commit_id, commit_id) == 0) {
+                found = 1;
+                index = j;
+            }
         }
-    }
 
     if (!found) {
         puts("Invalid commit id");
