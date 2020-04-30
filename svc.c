@@ -277,8 +277,8 @@ char *svc_commit(void *helper, char *message) {
             }
         }
         if (!found) {
-            free(new_file->file_content);
-            new_file->file_content = NULL;
+            // free(new_file->file_content);
+            // new_file->file_content = NULL;
             new_file->state = REMOVED;
         }
     }
