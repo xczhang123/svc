@@ -136,6 +136,7 @@ void set_commit_id(commit_t *commit) {
     //Sort file name in alphabetic order
     qsort(commit->commited_file->file, commit->commited_file->size, sizeof(file_t*), &compare); 
 
+
     // printf("1st %d\n", file_t_dyn_array_get(commit->commited_file, 0)->state);
     // printf("1st %s\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path);
     // printf("2nd %d\n", file_t_dyn_array_get(commit->commited_file, 1)->state);
@@ -145,7 +146,7 @@ void set_commit_id(commit_t *commit) {
     //For unsigned byte in change.file_name
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
-        // printf("%s\n, %d\n",file->file_path, file->state);
+        printf("file is: %s\n, file state is %d\n",file->file_path, file->state);
         if (file->state == ADDED) {
             id += 376591;
         } else if (file->state == REMOVED) {
@@ -231,6 +232,8 @@ char *svc_commit(void *helper, char *message) {
 
         stage->not_changed = 1;
 
+        printf("The commit id is %s\n", commit->commit_id);
+
         return commit->commit_id;
     }
 
@@ -308,6 +311,8 @@ char *svc_commit(void *helper, char *message) {
 
     set_commit_id(commit);
     stage->not_changed = 1;
+
+    printf("The commit id is %s\n", commit->commit_id);
 
     return commit->commit_id;
 }
@@ -764,6 +769,8 @@ int svc_reset(void *helper, char *commit_id) {
         file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
         file->state = DEFAULT;
     }
+
+    printf("After reset: the ");
 
     branch->commit->last_commit_index = index;
     return 0;
