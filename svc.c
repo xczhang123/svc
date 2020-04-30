@@ -392,7 +392,7 @@ void print_commit(void *helper, char *commit_id) {
 
     int found = 0;
     int index = -1;
-    for (int i = 0; i < svc->size; i++)
+    for (int i = 0; i < svc->size; i++) {
         branch = svc->branch[i];
         for (int j = 0; j < branch->commit->size; j++) {
             commit_t *commit = commit_t_dyn_array_get(branch->commit, j);
@@ -401,6 +401,7 @@ void print_commit(void *helper, char *commit_id) {
                 index = j;
             }
         }
+    }
 
     if (!found) {
         puts("Invalid commit id");
