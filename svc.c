@@ -434,6 +434,8 @@ void print_commit(void *helper, char *commit_id) {
 //DONE
 int svc_branch(void *helper, char *branch_name) {
 
+    printf("We have created a new branch!\n");
+
     //If the branch name is NULL: return -1
     if (branch_name == NULL) {
         return -1;
@@ -818,7 +820,6 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     }
 
     branch_t *merged_branch = svc->branch[index];
-
     commit_t *merged_branch_commit = commit_t_dyn_array_get(merged_branch->commit, merged_branch->commit->last_commit_index);
 
     //We use stage as temporary storage for the changes
