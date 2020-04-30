@@ -849,6 +849,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
             file1->state = ADDED;
             file_t_dyn_array_add(stage->tracked_file, file1);
             file1->state = state;
+            stage->not_changed = 0;
         }
     }
 
@@ -862,6 +863,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                 file_t *file = file_t_dyn_array_get(stage->tracked_file, j);
                 if (strcmp(file->file_path, resolutions[i].file_name) == 0) {
                     file->state = REMOVED;
+                    stage->not_changed = 0;
                 }
             }
         } else { //if there are resolutions available
@@ -890,6 +892,8 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                     file_in_stage->hash = hash_file(helper, file_in_stage->file_path);
                     file_in_stage->state = CHANGED;
 
+                    stage->not_changed = 0;
+
                 }
             }
         }
@@ -897,10 +901,10 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     //Now we have incorporated all state changes of the files in stage
 
     //consturct the message
-    char message[14+50+1] = {0};
-    strcat(message, "Merged branch ");
-    strcat(message, branch_name);
-    message[strlen(message)] = '\0';
+    char message[14+strlen(branch_name)+1];
+    memcpy(message, "Merged branch ", 14);
+    memcpy(message+14, branch_name, strlen(branch_name));
+    message[strlen(branch_name)] = '\0';
 
     //Make the new commit from the stage
     commit_t *prev[2] = {current_commit, merged_branch_commit};
