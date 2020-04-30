@@ -416,8 +416,8 @@ void print_commit(void *helper, char *commit_id) {
     puts("");
     printf("    Tracked files (%d):\n", stage->tracked_file->size);
 
-    for (int i = 0; i < stage->tracked_file->size; i++) {
-        file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
+    for (int i = 0; i < commit->commited_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(commit->commited_file, i);
         printf("    [%10d] %s\n", file->hash, file->file_path);
     }
 }
