@@ -242,6 +242,8 @@ int example2() {
 
     //assert(svc_reset(helper, "7b3e30") == 0);
 
+    remove("COMP2017/svc.c");
+    remove("COMP2017/svc.h");
 
     cleanup(helper);
     return 1;
