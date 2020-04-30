@@ -776,6 +776,9 @@ int svc_reset(void *helper, char *commit_id) {
 }
 
 char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions, int n_resolutions) {
+
+    printf("We are merging now!\n");
+
     if (branch_name == NULL) {
         printf("Invalid branch name\n");
         return NULL;
@@ -854,7 +857,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     //Replace with those in the resolutions
     for (int i = 0; i < n_resolutions; i++) {
 
-        if (resolutions[i].file_name == NULL) {
+        if (resolutions[i].resolved_file == NULL) {
             for (int j = 0; j < stage->tracked_file->size; j++) {
                 file_t *file = file_t_dyn_array_get(stage->tracked_file, j);
                 if (strcmp(file->file_path, resolutions[i].file_name) == 0) {
@@ -914,5 +917,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     stage->not_changed = 1;
 
     printf("Merge successful\n");
+
+    printf("After calling merge, we have the new commit id %s", new_commit->commit_id);
     return new_commit->commit_id;
 }
