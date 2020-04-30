@@ -159,7 +159,7 @@ void set_commit_id(commit_t *commit) {
     }
 
     // printf("id is: %d\n", id);
-    printf("Calculated commit id: %06x\n", id);
+    // printf("Calculated commit id: %06x\n", id);
     snprintf(commit->commit_id, 7 , "%06x", id);
     
 }
@@ -180,6 +180,7 @@ char *svc_commit(void *helper, char *message) {
             file_t_dyn_array_delete_file(stage->tracked_file, file);
             stage->not_changed = 0; //there must be some changes
             i--;
+            printf("Manual removal detected!\n");
         } else {//We recalculate the hash value for each file
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
