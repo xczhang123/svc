@@ -383,7 +383,6 @@ void print_commit(void *helper, char *commit_id) {
 
     svc_t *svc = ((struct svc*)helper);
     branch_t *branch = svc->head;
-    stage_t *stage = svc->stage;
 
     int found = 0;
     int index = -1;
