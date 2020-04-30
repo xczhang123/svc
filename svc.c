@@ -136,10 +136,10 @@ void set_commit_id(commit_t *commit) {
     //Sort file name in alphabetic order
     qsort(commit->commited_file->file, commit->commited_file->size, sizeof(file_t*), &compare); 
 
-    printf("1st %d\n", file_t_dyn_array_get(commit->commited_file, 0)->state);
-    printf("1st %s\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path);
-    printf("2nd %d\n", file_t_dyn_array_get(commit->commited_file, 1)->state);
-    printf("2nd %s\n", file_t_dyn_array_get(commit->commited_file, 1)->file_path);
+    // printf("1st %d\n", file_t_dyn_array_get(commit->commited_file, 0)->state);
+    // printf("1st %s\n", file_t_dyn_array_get(commit->commited_file, 0)->file_path);
+    // printf("2nd %d\n", file_t_dyn_array_get(commit->commited_file, 1)->state);
+    // printf("2nd %s\n", file_t_dyn_array_get(commit->commited_file, 1)->file_path);
 
     //for change in commit.changes in increasing alphabetical order of file_name:
     //For unsigned byte in change.file_name
@@ -486,6 +486,9 @@ int svc_branch(void *helper, char *branch_name) {
 }
 
 int svc_checkout(void *helper, char *branch_name) {
+
+    printf("We checked out a branch %s\n", branch_name);
+
     if (branch_name == NULL) {
         return -1;
     }
@@ -692,6 +695,8 @@ int svc_rm(void *helper, char *file_name) {
 
 int svc_reset(void *helper, char *commit_id) {
 
+    printf("We reset to the commit %d\n", commit_id);
+
     if (commit_id == NULL) {
         return -1;
     }
@@ -765,6 +770,7 @@ int svc_reset(void *helper, char *commit_id) {
 }
 
 char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions, int n_resolutions) {
+    printf("Not Implemented\n");
     // TODO: Implement
     return NULL;
 }
