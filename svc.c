@@ -609,7 +609,16 @@ int svc_checkout(void *helper, char *branch_name) {
             printf("Restore the files name: %s hash is:%d\n", file->file_path, file->hash);
             printf("The content wrote is :%s\n", file->file_content);
             FILE *fp = fopen(file->file_path, "wb");
-            fwrite(file->file_content, 1, strlen(file->file_content), fp); //Restore all changes
+            char str[100];
+            sprintf(str, "%d", file->hash);
+            FILE *fp2 = fopen(str, "wb");
+            fwrite(file->file_content, 1, strlen(file->file_content), fp2); //Restore all changes
+            
+            unsigned int c = 0;
+            FILE *fp3 = fopen(str, "rb");
+            while ((signed int)(c=fgetc(fp3)) != EOF) {
+                putc(c, fp);
+            }
             fclose(fp);
         }
     }
