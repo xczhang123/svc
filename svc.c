@@ -269,7 +269,7 @@ char *svc_commit(void *helper, char *message) {
             // printf("new_file state %d\n", new_file->state);
             // printf("%d\n", new_file->hash == tracked_file->hash );
 
-            if (strcmp(new_file->file_path, tracked_file->file_path) == 0) {
+            if (new_file->file_path != NULL && tracked_file->file_path != NULL && strcmp(new_file->file_path, tracked_file->file_path) == 0) {
                 if (new_file->hash != tracked_file->hash) {
                     free(new_file->file_content);
                     new_file->file_content = strdup(tracked_file->file_content);
@@ -296,7 +296,7 @@ char *svc_commit(void *helper, char *message) {
         for (int j = 0; j < commit->commited_file->size; j++) {
             file_t *new_file = file_t_dyn_array_get(commit->commited_file, j);
 
-            if (strcmp(new_file->file_path, tracked_file->file_path) == 0) {
+            if (new_file->file_path != NULL && tracked_file->file_path != NULL && strcmp(new_file->file_path, tracked_file->file_path) == 0) {
                 found = 1;
             }
         }
@@ -598,7 +598,7 @@ int svc_add(void *helper, char *file_name) {
     //If the file name is already under version control: return -2
     for (int i = 0; i < stage->tracked_file->size; i++) {
         file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
-        if (strcmp(file->file_path, file_name) == 0) {
+        if (file->file_path != NULL && strcmp(file->file_path, file_name) == 0) {
             return -2;
         }
     }
@@ -684,7 +684,7 @@ int svc_rm(void *helper, char *file_name) {
 
     for (int i = 0; i < stage->tracked_file->size; i++) {
         file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
-        if (strcmp(file->file_path, file_name) == 0) {
+        if (file->file_path != NULL && (file->file_path, file_name) == 0) {
             file_to_be_deleted_hash = file->hash;
             file_t_dyn_array_delete_file(stage->tracked_file, file);
             break;
@@ -867,7 +867,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
         int found = 0;
         for (int j = 0; j < current_commit->commited_file->size; j++) {
             file_t *file2 = file_t_dyn_array_get(current_commit->commited_file, j);
-            if (strcmp(file1->file_path, file2->file_path) == 0) {
+            if (file1->file_path != NULL && file2->file_path != NULL && strcmp(file1->file_path, file2->file_path) == 0) {
                 found = 1;
             }
         }
@@ -888,7 +888,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
         if (resolutions[i].resolved_file == NULL) {
             for (int j = 0; j < stage->tracked_file->size; j++) {
                 file_t *file = file_t_dyn_array_get(stage->tracked_file, j);
-                if (strcmp(file->file_path, resolutions[i].file_name) == 0) {
+                if (file->file_path != NULL && (file->file_path, resolutions[i].file_name) == 0) {
                     file->state = REMOVED;
                     stage->not_changed = 0;
                 }
@@ -897,7 +897,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                 //files are taken from the merged branch
             for (int j = 0; j < stage->tracked_file->size; j++) {
                 file_t *file = file_t_dyn_array_get(stage->tracked_file, j);
-                if (strcmp(file->file_path, resolutions[i].file_name) == 0) {
+                if (file->file_path != NULL && (file->file_path, resolutions[i].file_name) == 0) {
 
                     file_t *file_in_stage = file_t_dyn_array_get(stage->tracked_file, j);
 
@@ -927,7 +927,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
 
                     printf("previous file hash is %d\n", file_in_stage->previous_hash);
                     printf("new hash is %d\n", file_in_stage->hash);
-                    file_in_stage->state = ADDED;
+                    file_in_stage->state = CHANGED;
 
                     // if (file_in_stage->previous_hash != file_in_stage->hash) {
                     //     file_in_stage->state = CHANGED;
