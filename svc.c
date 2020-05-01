@@ -944,7 +944,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     //Now we have incorporated all state changes of the files in stage
 
     //consturct the message
-    char *message = strdup("Merged branch random_branch");
+    char *message = strdup("Merged branch randddd");
     // strcat(message, branch_name);
     // char message[25] = "Merged branch rando";
     // char prefix[15] = "Merged branch ";
