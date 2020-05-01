@@ -589,7 +589,7 @@ int svc_checkout(void *helper, char *branch_name) {
         if (file->state != REMOVED) {
             file_t_dyn_array_add(stage->tracked_file, file);
         }
-        printf("The staged file %s hash is %d\n", file->file_path,file->hash);
+        // printf("The staged file %s hash is %d\n", file->file_path,file->hash);
     }
 
     // //Set tracked files state to DEFAULT
@@ -978,7 +978,6 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
 
                     file_t *file_in_stage = file_t_dyn_array_get(stage->tracked_file, j);
 
-                    
                     FILE *fp = fopen(resolutions[i].file_name, "r");
 
                     fseek(fp, 0, SEEK_END);
@@ -1002,8 +1001,8 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
 
                     // printf("new file content is %s\n", file_in_stage->file_content);
 
-                    // printf("previous file hash is %d\n", file_in_stage->previous_hash);
-                    // printf("new hash is %d\n", file_in_stage->hash);
+                    printf("previous file hash is %d\n", file_in_stage->previous_hash);
+                    printf("new hash is %d\n", file_in_stage->hash);
                     if (file_in_stage->previous_hash != file_in_stage->hash) {
                         file_in_stage->state = CHANGED;
                         stage->not_changed = 0;
