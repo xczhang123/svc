@@ -35,7 +35,7 @@ int test_first_commit() {
 int test_add_branch() {
     void *helper = svc_init();
 
-    svc_t *svc = ((struct svc*)helper);
+    // svc_t *svc = ((struct svc*)helper);
 
     svc_add(helper, "empty.txt");
 
@@ -194,7 +194,7 @@ int example2() {
     // remove("COMP2017/svc.c");
     // remove("COMP2017/svc.h");
 
-    printf("%s\n",svc_commit(helper, "Implemented svc_init"));
+    assert(strcmp(svc_commit(helper, "Implemented svc_init"), "24829b") == 0);
 
     // stage = svc->stage;
     // for (int i = 0; i < stage->tracked_file->size; i++) {
@@ -217,6 +217,8 @@ int example2() {
     printf("prev1: %s\n", commit->prev[0]->commit_id);
     printf("prev2: %p\n", commit->prev[1]);
     printf("-------\n");
+
+
 
     // printf("%d\n",hash_file(helper, "COMP2017/svc.c"));
 

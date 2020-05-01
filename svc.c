@@ -917,14 +917,13 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                     file_in_stage->previous_hash = file_in_stage->hash;
                     file_in_stage->hash = hash_file(helper, file_in_stage->file_path);
 
-                    if ( file_in_stage->previous_hash != file_in_stage->hash) {
+                    if (file_in_stage->previous_hash != file_in_stage->hash) {
                         file_in_stage->state = CHANGED;
+                        stage->not_changed = 0;
                     } else {
                         file_in_stage->state = DEFAULT;// no change
+                        stage->not_changed = 1;
                     }
-
-
-                    stage->not_changed = 0;
 
                 }
             }
@@ -939,10 +938,10 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     // // strcat(message, branch_name);
     // message[strlen(message)] = '\0';
 
-    char message[14+50+1];
-    memcpy(message, "Merged branch ", 14);
-    memcpy(message+14, branch_name, strlen(branch_name));
-    message[14+strlen(branch_name)] = '\0';
+    // char message[14+50+1];
+    // memcpy(message, "Merged branch ", 14);
+    // memcpy(message+14, branch_name, strlen(branch_name));
+    // message[14+strlen(branch_name)] = '\0';
 
     //Make the new commit from the stage
     commit_t *prev[2] = {current_commit, merged_branch_commit};
