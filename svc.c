@@ -268,11 +268,13 @@ char *svc_commit(void *helper, char *message) {
                 if (new_file->hash != tracked_file->hash) {
                     printf("filename: %s changed!", new_file->file_path);
                     printf("original hash %d, new hash %d\n", new_file->hash, tracked_file->hash);
+                    printf("previous file content %s\n", new_file->file_content);
                     free(new_file->file_content);
                     new_file->file_content = strdup(tracked_file->file_content);
                     new_file->state = CHANGED;
                     new_file->previous_hash = new_file->hash;
                     new_file->hash = tracked_file->hash;
+                    printf("new file content %s\n", new_file->file_content);
                 }
                 found = 1;
             }
