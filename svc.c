@@ -904,13 +904,15 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                     
                     FILE *fp = fopen(resolutions[i].file_name, "r");
 
-                    // fseek(fp, 0, SEEK_END);
-                    // long file_length = ftell(fp);
-                    // fseek(fp, 0, SEEK_SET);
-                    // char file_contents[file_length+1];
-                    // fread(file_contents, sizeof(char), file_length, fp);
-                    // file_contents[file_length] = '\0';
+                    fseek(fp, 0, SEEK_END);
+                    long file_length = ftell(fp);
+                    fseek(fp, 0, SEEK_SET);
+                    char file_contents[file_length+1];
+                    fread(file_contents, sizeof(char), file_length, fp);
+                    file_contents[file_length] = '\0';
                     fclose(fp);
+
+                    printf("file content is %s\n", file_contents);
 
                     // free(file_in_stage->file_content);
                     // file_in_stage->file_content = strdup(file_contents);
