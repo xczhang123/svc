@@ -266,11 +266,10 @@ char *svc_commit(void *helper, char *message) {
 
             if (new_file->file_path != NULL && tracked_file->file_path != NULL && strcmp(new_file->file_path, tracked_file->file_path) == 0) {
                 if (new_file->hash != tracked_file->hash) {
-                    printf("filename: %s, Original content:%s", new_file->file_path, new_file->file_content);
+                    printf("filename: %s changed!", new_file->file_path);
                     free(new_file->file_content);
                     new_file->file_content = strdup(tracked_file->file_content);
                     new_file->state = CHANGED;
-                    printf("filename: %s, new content:%s", new_file->file_path, new_file->file_content);
                     new_file->previous_hash = new_file->hash;
                     new_file->hash = tracked_file->hash;
                 }
