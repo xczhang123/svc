@@ -884,12 +884,43 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
         return NULL;
     }
 
+    //Before merge, check for any unexpected changes
+    for (int i = 0; i < current_commit->commited_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(current_commit->commited_file, i);
+        FILE* fp;
+        if ((fp=fopen(file->file_path, "r")) == NULL) {
+            file->state = REMOVED;
+            svc->stage->not_changed = 0;
+        } else {
+            file->previous_hash = file->hash;
+            file->hash = hash_file(helper, file->file_path);
+
+            if (file->previous_hash != file->hash) {
+
+                fseek(fp, 0, SEEK_END);
+                long file_length = ftell(fp);
+                fseek(fp, 0, SEEK_SET);
+                char file_contents[file_length+1];
+                file_contents[file_length] = '\0';
+                fread(file_contents, sizeof(char), file_length, fp);
+                fclose(fp);
+
+                file->file_content = realloc(file->file_content,sizeof(char)*(file_length+1)); //Realloc file_content field
+                memcpy(file->file_content, file_contents, file_length+1);
+
+                file->state = CHANGED;
+                stage->not_changed = 0; //As long as we found one change, it's atomic
+            }
+        }
+    }
+
     //If there are uncommitted changes
     if (stage->not_changed == 0) {
         printf("Changes must be committed\n");
         return NULL;
     }
 
+    //Now we merge two commits
     branch_t *merged_branch = svc->branch[index];
     commit_t *merged_branch_commit = commit_t_dyn_array_get(merged_branch->commit, merged_branch->commit->last_commit_index);
 
@@ -928,7 +959,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
 
     //Now stage has all the files required that is either ADDED or DEFAULT
 
-    //Replace with those in the resolutions
+    //Remove or replace files with those in the resolutions
     for (int i = 0; i < n_resolutions; i++) {
 
         if (resolutions[i].resolved_file == NULL) {
