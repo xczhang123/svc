@@ -185,6 +185,8 @@ char *svc_commit(void *helper, char *message) {
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
 
+            printf("The file hash is changed from %d to %d\n", file->previous_hash,file->hash);
+
             if (file->previous_hash != file->hash) {
 
                 fseek(fp, 0, SEEK_END);
