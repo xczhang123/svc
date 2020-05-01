@@ -942,6 +942,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     // memcpy(message, "Merged branch ", 14);
     // memcpy(message+14, branch_name, strlen(branch_name));
     // message[14+strlen(branch_name)] = '\0';
+    char message[5] = "test";
 
     //Make the new commit from the stage
     commit_t *prev[2] = {current_commit, merged_branch_commit};
