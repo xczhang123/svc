@@ -185,7 +185,7 @@ char *svc_commit(void *helper, char *message) {
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
 
-            printf("The file hash is changed from %d to %d\n", file->previous_hash,file->hash);
+            printf("The read coontent is %s\n", file->file_content);
 
             if (file->previous_hash != file->hash) {
 
@@ -261,7 +261,7 @@ char *svc_commit(void *helper, char *message) {
 
         for (int j = 0; j < stage->tracked_file->size; j++) {
             file_t *tracked_file = file_t_dyn_array_get(stage->tracked_file, j);
-            printf("In commit: The stage files name: %s hash is:%d\n", tracked_file->file_path, tracked_file->hash);
+            // printf("In commit: The stage files name: %s hash is:%d\n", tracked_file->file_path, tracked_file->hash);
 
             if (new_file->file_path != NULL && tracked_file->file_path != NULL && strcmp(new_file->file_path, tracked_file->file_path) == 0) {
                 if (new_file->hash != tracked_file->hash) {
@@ -607,6 +607,7 @@ int svc_checkout(void *helper, char *branch_name) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
         if (file->state != REMOVED) {
             printf("Restore the files name: %s hash is:%d\n", file->file_path, file->hash);
+            printf("The content wrote is : %s\n", file->file_content);
             FILE *fp = fopen(file->file_path, "w");
             fputs(file->file_content, fp); //Restore all changes
             fclose(fp);
