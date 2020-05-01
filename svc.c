@@ -82,12 +82,12 @@ int hash_file(void *helper, char *file_path) {
 
     //Compute file name hash
     for (unsigned int i = 0; i < strlen(file_path); i++) {
-        hash = (hash + (unsigned char)file_path[i]) % 1000;
+        hash = (hash + file_path[i]) % 1000;
     }
 
     //Compute file contents hash
     for (long i = 0; i < file_length; i++) {
-        hash = (hash + (unsigned char)file_contents[i]) % 2000000000;
+        hash = (hash + file_contents[i]) % 2000000000;
     }
 
     return hash;
@@ -609,16 +609,8 @@ int svc_checkout(void *helper, char *branch_name) {
             printf("Restore the files name: %s hash is:%d\n", file->file_path, file->hash);
             printf("The content wrote is :%s\n", file->file_content);
             FILE *fp = fopen(file->file_path, "wb");
-            char str[100];
-            sprintf(str, "%d", file->hash);
-            FILE *fp2 = fopen(str, "wb");
-            fwrite(file->file_content, 1, strlen(file->file_content), fp2); //Restore all changes
-            
-            unsigned int c = 0;
-            FILE *fp3 = fopen(str, "rb");
-            while ((signed int)(c=fgetc(fp3)) != EOF) {
-                putc(c, fp);
-            }
+            fwrite(file->file_content, 1, strlen(file->file_content), fp); //Restore all changes
+
             fclose(fp);
         }
     }
