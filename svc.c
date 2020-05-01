@@ -850,6 +850,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     //We use stage as temporary storage for the changes
     file_t_dyn_array_free(stage->tracked_file);
     stage->tracked_file = file_t_dyn_array_init();
+    stage->not_changed = 1;
 
     //Add previous commit to the stage
     for (int i = 0; i < current_commit->commited_file->size; i++) {
