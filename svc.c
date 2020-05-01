@@ -938,10 +938,10 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     // // strcat(message, branch_name);
     // message[strlen(message)] = '\0';
 
-    char message[14+50+1];
-    char prefix[14] = "Merged branch";
+    char message[14+50+1] = {0};
+    char prefix[15] = "Merged branch ";
     sprintf(message, "%s", prefix);
-    sprintf(message+14, "%s", branch_name);
+    sprintf(message, "%s", branch_name);
     printf("length of the message is %ld\n", 14+strlen(branch_name));
     message[14+strlen(branch_name)] = '\0';
     // char message[5] = "test";
