@@ -198,7 +198,6 @@ char *svc_commit(void *helper, char *message) {
                 file->file_content = realloc(file->file_content,sizeof(char)*(file_length+1)); //Realloc file_content field
                 memcpy(file->file_content, file_contents, file_length+1);
 
-
                 stage->not_changed = 0; //As long as we found one change, it's atomic
             }
         }
@@ -240,10 +239,8 @@ char *svc_commit(void *helper, char *message) {
     commit_t *last_commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index);
 
     commit_t *prev[2] = {last_commit, NULL};
-
     stage_t previous = {0}; //temporary stage object to store files in previous commit
     previous.tracked_file = last_commit->commited_file;
-
     commit_t_dyn_array_add(branch->commit, &previous, message, 1, prev); //Add one new commit (add all files in previous commit)
 
     commit_t *commit = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index); //get current commit
@@ -267,8 +264,9 @@ char *svc_commit(void *helper, char *message) {
             if (new_file->file_path != NULL && tracked_file->file_path != NULL && strcmp(new_file->file_path, tracked_file->file_path) == 0) {
                 if (new_file->hash != tracked_file->hash) {
                     // printf("filename: %s changed!", new_file->file_path);
-                    // printf("original hash %d, new hash %d\n", new_file->hash, tracked_file->hash);
-                    // printf("previous file content %s\n", new_file->file_content);
+                    printf("original hash %d, new hash %d\n", new_file->hash, tracked_file->hash);
+                    // printf("previous file content %s\n", new_file->file_content);;
+                    printf("The file %s state is changed to CHANGED\n", new_file->file_path);
                     free(new_file->file_content);
                     new_file->file_content = strdup(tracked_file->file_content);
                     new_file->state = CHANGED;
