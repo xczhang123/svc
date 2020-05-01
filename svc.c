@@ -470,7 +470,7 @@ void print_commit(void *helper, char *commit_id) {
 //DONE
 int svc_branch(void *helper, char *branch_name) {
 
-    printf("We have created a new branch!\n");
+    printf("We have created a new branch with name %s\n", branch_name);
 
     //If the branch name is NULL: return -1
     if (branch_name == NULL) {
