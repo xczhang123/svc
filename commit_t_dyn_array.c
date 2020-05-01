@@ -37,12 +37,12 @@ void commit_t_dyn_array_add(struct commit_t_dyn_array *dyn, stage_t *stage, char
     dyn->commit[dyn->size]->n_prev = n_prev;
 
 
-    if (prev[0] != NULL) {
-        dyn->commit[dyn->size]->prev[0] = prev[0];
-        dyn->commit[dyn->size]->prev[1] = NULL;
-    } else if (prev[0] != NULL && prev[1] != NULL) {
+    if (prev[0] != NULL && prev[1] != NULL) {
         dyn->commit[dyn->size]->prev[0] = prev[0];
         dyn->commit[dyn->size]->prev[1] = prev[1];
+    } else if (prev[0] != NULL) {
+        dyn->commit[dyn->size]->prev[0] = prev[0];
+        dyn->commit[dyn->size]->prev[1] = NULL;
     } else { //Both are NULL;
         dyn->commit[dyn->size]->prev[0] = NULL;
         dyn->commit[dyn->size]->prev[1] = NULL;
