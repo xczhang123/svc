@@ -851,7 +851,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     file_t_dyn_array_free(stage->tracked_file);
     stage->tracked_file = file_t_dyn_array_init();
 
-    //Add previous commit to the new commit
+    //Add previous commit to the stage
     for (int i = 0; i < current_commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(current_commit->commited_file, i);
         int state = file->state;
@@ -916,7 +916,13 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                     // file_in_stage->file_path = strdup(resolutions[i].resolved_file);
                     file_in_stage->previous_hash = file_in_stage->hash;
                     file_in_stage->hash = hash_file(helper, file_in_stage->file_path);
-                    file_in_stage->state = CHANGED;
+
+                    if ( file_in_stage->previous_hash != file_in_stage->hash) {
+                        file_in_stage->state = CHANGED;
+                    } else {
+                        file_in_stage->state = DEFAULT;// no change
+                    }
+
 
                     stage->not_changed = 0;
 
