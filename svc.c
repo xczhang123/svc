@@ -608,7 +608,7 @@ int svc_checkout(void *helper, char *branch_name) {
         if (file->state != REMOVED) {
             printf("Restore the files name: %s hash is:%d\n", file->file_path, file->hash);
             printf("The content wrote is :%s\n", file->file_content);
-            FILE *fp = fopen(file->file_path, "w");
+            FILE *fp = fopen(file->file_path, "wb");
             fputs(file->file_content, fp); //Restore all changes
             fclose(fp);
         }
@@ -855,7 +855,7 @@ int svc_reset(void *helper, char *commit_id) {
     for (int i = 0; i < new_commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(new_commit->commited_file, i);
         if (file->state != REMOVED) {
-            FILE *fp = fopen(file->file_path, "w");
+            FILE *fp = fopen(file->file_path, "wb");
             fputs(file->file_content, fp); //Restore all changes
             fclose(fp);
         }
@@ -1035,7 +1035,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
 
                     free(file_in_stage->file_content);
                     file_in_stage->file_content = strdup(file_contents);
-                    fp = fopen(file_in_stage->file_path, "w");//Write the content into previous files
+                    fp = fopen(file_in_stage->file_path, "wb");//Write the content into previous files
                     fputs(file_contents, fp);
                     fclose(fp);
                     
@@ -1080,7 +1080,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     for (int i = 0; i < merged_branch->commit->size; i++) {
         file_t *file = file_t_dyn_array_get(merged_branch_commit->commited_file, i);
         if (file->state != REMOVED) {
-            FILE *fp = fopen(file->file_path, "w");
+            FILE *fp = fopen(file->file_path, "wb");
             fputs(file->file_content, fp);
             fclose(fp);
         }
