@@ -231,7 +231,7 @@ char *svc_commit(void *helper, char *message) {
 
         stage->not_changed = 1;
 
-        printf("The commit id is %s\n", commit->commit_id);
+        printf("First commit id is %s\n", commit->commit_id);
 
         return commit->commit_id;
     }
@@ -558,19 +558,49 @@ int svc_checkout(void *helper, char *branch_name) {
     if (!found) {
         return -1;
     }
+    commit_t *current_commit = commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index);
+    svc->head = svc->branch[index];
+    stage_t *stage = svc->stage;
+    commit_t *commit = commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index);
+
+    //Before checkout, check for any unexpected changes
+    for (int i = 0; i < current_commit->commited_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(current_commit->commited_file, i);
+        FILE* fp;
+        if ((fp=fopen(file->file_path, "r")) == NULL) {
+            file->state = REMOVED;
+            svc->stage->not_changed = 0;
+        } else {
+            file->previous_hash = file->hash;
+            file->hash = hash_file(helper, file->file_path);
+
+            if (file->previous_hash != file->hash) {
+
+                fseek(fp, 0, SEEK_END);
+                long file_length = ftell(fp);
+                fseek(fp, 0, SEEK_SET);
+                char file_contents[file_length+1];
+                file_contents[file_length] = '\0';
+                fread(file_contents, sizeof(char), file_length, fp);
+                fclose(fp);
+
+                file->file_content = realloc(file->file_content,sizeof(char)*(file_length+1)); //Realloc file_content field
+                memcpy(file->file_content, file_contents, file_length+1);
+
+                file->state = CHANGED;
+                stage->not_changed = 0; //As long as we found one change, it's atomic
+            }
+        }
+    }
 
     //If there are uncommitted changes
     if (svc->stage->not_changed == 0) {
         return -2;
     }
 
-    svc->head = svc->branch[index];
-    stage_t *stage = svc->stage;
-    commit_t *commit = commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index);
-
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
-        if (file->state == CHANGED || file->state == ADDED) {
+        if (file->state != REMOVED) {
             FILE *fp = fopen(file->file_path, "w");
             fputs(file->file_content, fp); //Restore all changes
             fclose(fp);
@@ -817,7 +847,7 @@ int svc_reset(void *helper, char *commit_id) {
 
     for (int i = 0; i < new_commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(new_commit->commited_file, i);
-        if (file->state == CHANGED || file->state == ADDED) {
+        if (file->state != REMOVED) {
             FILE *fp = fopen(file->file_path, "w");
             fputs(file->file_content, fp); //Restore all changes
             fclose(fp);
