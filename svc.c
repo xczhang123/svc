@@ -82,12 +82,12 @@ int hash_file(void *helper, char *file_path) {
 
     //Compute file name hash
     for (unsigned int i = 0; i < strlen(file_path); i++) {
-        hash = (hash + (unsigned char)file_path[i]) % 1000;
+        hash = (hash + (unsigned int)file_path[i]) % 1000;
     }
 
     //Compute file contents hash
     for (long i = 0; i < file_length; i++) {
-        hash = (hash + (unsigned char)file_contents[i]) % 2000000000;
+        hash = (hash + (unsigned int)file_contents[i]) % 2000000000;
     }
 
     return hash;
@@ -185,7 +185,7 @@ char *svc_commit(void *helper, char *message) {
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
 
-            printf("The read coontent is :%s\n", file->file_content);
+            // printf("The read content is :%s\n", file->file_content);
 
             if (file->previous_hash != file->hash) {
 
