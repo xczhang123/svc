@@ -944,8 +944,9 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     //Now we have incorporated all state changes of the files in stage
 
     //consturct the message
-
-    char message[25] = "Merged branch rando";
+    char *message = strdup("Merged branch random_branch");
+    // strcat(message, branch_name);
+    // char message[25] = "Merged branch rando";
     // char prefix[15] = "Merged branch ";
     // sprintf(message, "%s", prefix);
     // sprintf(message+14, "%s", branch_name);
@@ -971,6 +972,8 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
 
     printf("After calling merge, we have the new commit id %s\n", new_commit->commit_id);
     printf("The message is %s\n", message);
+
+    free(message);
 
     return new_commit->commit_id;
 }
