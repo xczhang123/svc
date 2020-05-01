@@ -587,7 +587,9 @@ int svc_checkout(void *helper, char *branch_name) {
     for (int i = 0; i < stage->tracked_file->size; i++) {
         file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
         file->state = DEFAULT;
+        printf("Now the files in the stage is %s and its state is %d", file->file_path, file->state);
     }
+
 
     return 0;
 }
