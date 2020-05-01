@@ -898,9 +898,9 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                 file_t *file = file_t_dyn_array_get(stage->tracked_file, j);
                 if (strcmp(file->file_path, resolutions[i].file_name) == 0) {
 
-                    // file_t *file_in_stage = file_t_dyn_array_get(stage->tracked_file, j);
+                    file_t *file_in_stage = file_t_dyn_array_get(stage->tracked_file, j);
                     
-                    // FILE *fp = fopen(resolutions[i].file_name, "r");
+                    FILE *fp = fopen(resolutions[i].file_name, "r");
 
                     // fseek(fp, 0, SEEK_END);
                     // long file_length = ftell(fp);
@@ -908,7 +908,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                     // char file_contents[file_length+1];
                     // fread(file_contents, sizeof(char), file_length, fp);
                     // file_contents[file_length] = '\0';
-                    // fclose(fp);
+                    fclose(fp);
 
                     // free(file_in_stage->file_content);
                     // file_in_stage->file_content = strdup(file_contents);
@@ -932,11 +932,6 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     //Now we have incorporated all state changes of the files in stage
 
     //consturct the message
-    // char message[14+50+1];
-    // sprintf(message, "Merged branch %s", branch_name);
-    // // strcat(message, "Merged branch ");
-    // // strcat(message, branch_name);
-    // message[strlen(message)] = '\0';
 
     char message[14+50+1] = {0};
     char prefix[15] = "Merged branch ";
