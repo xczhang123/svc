@@ -185,7 +185,7 @@ char *svc_commit(void *helper, char *message) {
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
 
-            printf("The read coontent is %s:\n", file->file_content);
+            printf("The read coontent is :%s\n", file->file_content);
 
             if (file->previous_hash != file->hash) {
 
