@@ -321,7 +321,7 @@ char *svc_commit(void *helper, char *message) {
     set_commit_id(commit);
     stage->not_changed = 1;
 
-    printf("The commit id after set is %s\n", commit->commit_id);
+    // printf("The commit id after set is %s\n", commit->commit_id);
 
     return commit->commit_id;
 }
@@ -329,7 +329,7 @@ char *svc_commit(void *helper, char *message) {
 //DONE
 void *get_commit(void *helper, char *commit_id) {
 
-    printf("We try to get the commit id %s\n", commit_id);
+    // printf("We try to get the commit id %s\n", commit_id);
 
     if (commit_id == NULL) {
         return NULL;
@@ -356,7 +356,7 @@ void *get_commit(void *helper, char *commit_id) {
 //DONE
 char **get_prev_commits(void *helper, void *commit, int *n_prev) {
 
-    printf("We try to get previous commit of %s\n", ((struct commit*)commit)->commit_id);
+    // printf("We try to get previous commit of %s\n", ((struct commit*)commit)->commit_id);
 
     (void)helper;
 
