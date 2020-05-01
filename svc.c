@@ -537,6 +537,7 @@ int svc_branch(void *helper, char *branch_name) {
 
 int svc_checkout(void *helper, char *branch_name) {
 
+
     printf("We checked out a branch name: %s\n", branch_name);
 
     if (branch_name == NULL) {
@@ -562,6 +563,8 @@ int svc_checkout(void *helper, char *branch_name) {
     svc->head = svc->branch[index];
     stage_t *stage = svc->stage;
     commit_t *commit = commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index);
+
+    printf("Before checkout, the stage is not changed: %d\n", stage->not_changed);
 
     //Before checkout, check for any unexpected changes
     for (int i = 0; i < current_commit->commited_file->size; i++) {
@@ -1064,16 +1067,9 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     set_commit_id(new_commit);
 
     //Reset the file state in the stage to DEFAULT
-    for (int i = 0; i < stage->tracked_file->size; i++) {
-        file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
-        file->state = DEFAULT;
-    }
     stage->not_changed = 1;
 
     printf("Merge successful\n");
-
-    // printf("After calling merge, we have the new commit id %s\n", new_commit->commit_id);
-    // printf("The message is %s\n", message);
 
     return new_commit->commit_id;
 }
