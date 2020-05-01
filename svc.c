@@ -588,12 +588,11 @@ int svc_checkout(void *helper, char *branch_name) {
         } 
     }
 
-    //Set tracked files state to DEFAULT
-    for (int i = 0; i < stage->tracked_file->size; i++) {
-        file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
-        file->state = DEFAULT;
-        printf("Now the files in the stage is %s and its state is %d", file->file_path, file->state);
-    }
+    // //Set tracked files state to DEFAULT
+    // for (int i = 0; i < stage->tracked_file->size; i++) {
+    //     file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
+    //     printf("Now the files in the stage is %s and its state is %d", file->file_path, file->state);
+    // }
 
 
     return 0;
@@ -836,10 +835,10 @@ int svc_reset(void *helper, char *commit_id) {
     }
 
     //Set tracked files state to DEFAULT
-    for (int i = 0; i < stage->tracked_file->size; i++) {
-        file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
-        file->state = DEFAULT;
-    }
+    // for (int i = 0; i < stage->tracked_file->size; i++) {
+    //     file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
+    //     file->state = DEFAULT;
+    // }
 
     branch->commit->last_commit_index = index;
     return 0;
@@ -955,7 +954,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                     file_contents[file_length] = '\0';
                     fclose(fp);
 
-                    printf("file content is %s\n", file_contents);
+                    // printf("file content is %s\n", file_contents);
 
                     free(file_in_stage->file_content);
                     file_in_stage->file_content = strdup(file_contents);
@@ -966,11 +965,10 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                     file_in_stage->previous_hash = file_in_stage->hash;
                     file_in_stage->hash = hash_file(helper, file_in_stage->file_path);
 
-                    printf("new file content is %s\n", file_in_stage->file_content);
+                    // printf("new file content is %s\n", file_in_stage->file_content);
 
-                    printf("previous file hash is %d\n", file_in_stage->previous_hash);
-                    printf("new hash is %d\n", file_in_stage->hash);
-
+                    // printf("previous file hash is %d\n", file_in_stage->previous_hash);
+                    // printf("new hash is %d\n", file_in_stage->hash);
                     if (file_in_stage->previous_hash != file_in_stage->hash) {
                         file_in_stage->state = CHANGED;
                         stage->not_changed = 0;
