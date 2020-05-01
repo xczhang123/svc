@@ -388,24 +388,51 @@ void print_commit(void *helper, char *commit_id) {
     }
 
     svc_t *svc = ((struct svc*)helper);
-    branch_t *branch;
+    branch_t *branch = svc->head;
 
     int found = 0;
     int index = -1;
-    for (int i = 0; i < svc->size; i++) {
-        branch = svc->branch[i];
-        for (int j = 0; j < branch->commit->size; j++) {
-            commit_t *commit = commit_t_dyn_array_get(branch->commit, j);
-            if (strcmp(commit->commit_id, commit_id) == 0) {
-                found = 1;
-                index = j;
-            }
+    for (int i = 0; i < branch->commit->size; i++) {
+        commit_t *commit = commit_t_dyn_array_get(branch->commit, i);
+        if (strcmp(commit->commit_id, commit_id) == 0) {
+            found = 1;
+            index = i;
         }
     }
 
-    if (!found) {
+    commit_t *commit_last = commit_t_dyn_array_get(branch->commit, branch->commit->last_commit_index);
+
+    if (!found && commit_last->n_prev == 1) {
         puts("Invalid commit id");
         return;
+    } else { //Search in other branches
+        commit_t *previous_commit = commit_last->prev[1];
+
+        while(previous_commit->n_prev != 0) {
+            if (strcmp(previous_commit->commit_id, commit_id) == 0) {
+                found = 1;
+            }
+            previous_commit = previous_commit->prev[0];
+        }
+
+        if (found) {
+            for (int i = 0; i < svc->size; i++) {
+                branch = svc->branch[i];
+                for (int j = 0; j < branch->commit->size; j++) {
+                    commit_t *commit = commit_t_dyn_array_get(branch->commit, j);
+                    if (strcmp(commit->commit_id, commit_id) == 0) {
+                        found = 1;
+                        index = j;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!found) {
+            puts("Invalid commit id");
+            return;
+        }
     }
 
     commit_t *commit = commit_t_dyn_array_get(branch->commit, index);
