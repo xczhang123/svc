@@ -606,6 +606,7 @@ int svc_checkout(void *helper, char *branch_name) {
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
         if (file->state != REMOVED) {
+            printf("Restore the files name: %s hash is:%d\n", file->file_path, file->hash);
             FILE *fp = fopen(file->file_path, "w");
             fputs(file->file_content, fp); //Restore all changes
             fclose(fp);
