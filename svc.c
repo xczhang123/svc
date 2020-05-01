@@ -181,7 +181,6 @@ char *svc_commit(void *helper, char *message) {
             file_t_dyn_array_delete_file(stage->tracked_file, file);
             stage->not_changed = 0; //there must be some changes
             i--;
-            fclose(fp);
         } else {//We recalculate the hash value for each file
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
@@ -932,7 +931,6 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
         if ((fp=fopen(file->file_path, "rb")) == NULL) {
             file->state = REMOVED;
             svc->stage->not_changed = 0;
-            fclose(fp);
         } else {
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
