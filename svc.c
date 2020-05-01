@@ -573,7 +573,7 @@ int svc_checkout(void *helper, char *branch_name) {
         if ((fp=fopen(file->file_path, "r")) == NULL) {
             file->state = REMOVED;
             svc->stage->not_changed = 0;
-            printf("staged changed here to REMOVED\n");
+            printf("staged changed here to REMOVED, filename is %s\n", file->file_path);
         } else {
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
