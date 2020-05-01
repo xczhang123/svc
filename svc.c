@@ -315,7 +315,7 @@ char *svc_commit(void *helper, char *message) {
         for (int j = 0; j < last_commit->commited_file->size; j++) {
             file_t *last_new_file = file_t_dyn_array_get(last_commit->commited_file, j);
 
-            if (new_file->state == last_new_file->state) {
+            if (strcmp(new_file->file_path, last_new_file->file_path) == 0 && new_file->state == last_new_file->state) {
                 new_file->state = DEFAULT; //no change
             }
         }
