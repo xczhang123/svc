@@ -942,15 +942,15 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     //Now we have incorporated all state changes of the files in stage
 
     //consturct the message
-    char *message = strdup("Merged branch random branch");
+    // char *message = strdup("Merged branch random branch");
     // strcat(message, branch_name);
-    // char message[25] = "Merged branch rando";
-    // char prefix[15] = "Merged branch ";
-    // sprintf(message, "%s", prefix);
-    // sprintf(message+14, "%s", branch_name);
-    // // printf("length of the message is %ld\n", 14+strlen(branch_name));
-    // message[strlen(message)] = '\0';
-    // char message[5] = "test";
+    char message[25] = {0};
+    char prefix[15] = "Merged branch ";
+    sprintf(message, "%s", prefix);
+    sprintf(message+14, "%s", branch_name);
+    // printf("length of the message is %ld\n", 14+strlen(branch_name));
+    message[strlen(message)] = '\0';
+    //char message[5] = "test";
 
     //Make the new commit from the stage
     commit_t *prev[2] = {current_commit, merged_branch_commit};
@@ -971,7 +971,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     printf("After calling merge, we have the new commit id %s\n", new_commit->commit_id);
     printf("The message is %s\n", message);
 
-    free(message);
+    //free(message);
 
     return new_commit->commit_id;
 }
