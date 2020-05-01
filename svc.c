@@ -160,7 +160,7 @@ void set_commit_id(commit_t *commit) {
 
     // printf("id is: %d\n", id);
     // printf("Calculated commit id: %06x\n", id);
-    snprintf(commit->commit_id, 7 , "%06x", id);
+    //snprintf(commit->commit_id, 7 , "%06x", id);
     
 }
 
@@ -944,7 +944,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     //Now we have incorporated all state changes of the files in stage
 
     //consturct the message
-    char *message = strdup("Merged branch randddddd");
+    char *message = strdup("Merged branch random branch");
     // strcat(message, branch_name);
     // char message[25] = "Merged branch rando";
     // char prefix[15] = "Merged branch ";
