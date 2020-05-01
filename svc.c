@@ -927,7 +927,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
 
                     printf("previous file hash is %d\n", file_in_stage->previous_hash);
                     printf("new hash is %d\n", file_in_stage->hash);
-                    file_in_stage->state = CHANGED;
+                    file_in_stage->state = ADDED;
 
                     // if (file_in_stage->previous_hash != file_in_stage->hash) {
                     //     file_in_stage->state = CHANGED;
