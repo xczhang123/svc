@@ -952,7 +952,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     // sprintf(message+14, "%s", branch_name);
     
 
-    char *message = strdup("Merged branch random_branc");
+    char *message = strdup("Merged branch random_branch");
     // printf("length of the message is %ld\n", 14+strlen(branch_name));
     
     //char message[5] = "test";
