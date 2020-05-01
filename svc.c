@@ -566,6 +566,29 @@ int svc_checkout(void *helper, char *branch_name) {
     }
 
     svc->head = svc->branch[index];
+    stage_t *stage = svc->stage;
+    commit_t *commit = commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index);
+
+    //Restore stage to the same as new_commmit
+    file_t_dyn_array_free(stage->tracked_file);
+
+    stage->not_changed = 1;
+    stage->tracked_file = file_t_dyn_array_init();
+
+    //Track all files in previous commit
+    for (int i = 0; i < commit->commited_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(commit->commited_file, i);
+        if (file->state != REMOVED) {
+            file_t_dyn_array_add(stage->tracked_file, file);
+        } 
+    }
+
+    //Set tracked files state to DEFAULT
+    for (int i = 0; i < stage->tracked_file->size; i++) {
+        file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
+        file->state = DEFAULT;
+    }
+
     return 0;
 }
 
