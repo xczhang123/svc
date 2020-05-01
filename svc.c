@@ -924,10 +924,11 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
 
                     printf("new file content is %s\n", file_in_stage->file_content);
 
-                    // if (file_in_stage->previous_hash != file_in_stage->hash) {
-                    //     file_in_stage->state = CHANGED;
-                    //     stage->not_changed = 0;
-                    // } else {
+                    if (file_in_stage->previous_hash != file_in_stage->hash) {
+                        file_in_stage->state = CHANGED;
+                        stage->not_changed = 0;
+                    } 
+                    // else {
                     //     file_in_stage->state = DEFAULT;// no change
                     //     stage->not_changed = 1;
                     // }
