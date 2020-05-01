@@ -898,32 +898,32 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                 file_t *file = file_t_dyn_array_get(stage->tracked_file, j);
                 if (strcmp(file->file_path, resolutions[i].file_name) == 0) {
 
-                    file_t *file_in_stage = file_t_dyn_array_get(stage->tracked_file, j);
+                    // file_t *file_in_stage = file_t_dyn_array_get(stage->tracked_file, j);
                     
-                    FILE *fp = fopen(resolutions[i].file_name, "r");
+                    // FILE *fp = fopen(resolutions[i].file_name, "r");
 
-                    fseek(fp, 0, SEEK_END);
-                    long file_length = ftell(fp);
-                    fseek(fp, 0, SEEK_SET);
-                    char file_contents[file_length+1];
-                    file_contents[file_length] = '\0';
-                    fread(file_contents, sizeof(char), file_length, fp);
-                    fclose(fp);
+                    // fseek(fp, 0, SEEK_END);
+                    // long file_length = ftell(fp);
+                    // fseek(fp, 0, SEEK_SET);
+                    // char file_contents[file_length+1];
+                    // fread(file_contents, sizeof(char), file_length, fp);
+                    // file_contents[file_length] = '\0';
+                    // fclose(fp);
 
-                    free(file_in_stage->file_content);
-                    file_in_stage->file_content = strdup(file_contents);
-                    // free(file_in_stage->file_path);
-                    // file_in_stage->file_path = strdup(resolutions[i].resolved_file);
-                    file_in_stage->previous_hash = file_in_stage->hash;
-                    file_in_stage->hash = hash_file(helper, file_in_stage->file_path);
+                    // free(file_in_stage->file_content);
+                    // file_in_stage->file_content = strdup(file_contents);
+                    // // free(file_in_stage->file_path);
+                    // // file_in_stage->file_path = strdup(resolutions[i].resolved_file);
+                    // file_in_stage->previous_hash = file_in_stage->hash;
+                    // file_in_stage->hash = hash_file(helper, file_in_stage->file_path);
 
-                    if (file_in_stage->previous_hash != file_in_stage->hash) {
-                        file_in_stage->state = CHANGED;
-                        stage->not_changed = 0;
-                    } else {
-                        file_in_stage->state = DEFAULT;// no change
-                        stage->not_changed = 1;
-                    }
+                    // if (file_in_stage->previous_hash != file_in_stage->hash) {
+                    //     file_in_stage->state = CHANGED;
+                    //     stage->not_changed = 0;
+                    // } else {
+                    //     file_in_stage->state = DEFAULT;// no change
+                    //     stage->not_changed = 1;
+                    // }
 
                 }
             }
