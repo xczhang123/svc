@@ -684,7 +684,7 @@ int svc_rm(void *helper, char *file_name) {
 
     for (int i = 0; i < stage->tracked_file->size; i++) {
         file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
-        if (file->file_path != NULL && (file->file_path, file_name) == 0) {
+        if (file->file_path != NULL && strcmp(file->file_path, file_name) == 0) {
             file_to_be_deleted_hash = file->hash;
             file_t_dyn_array_delete_file(stage->tracked_file, file);
             break;
@@ -888,7 +888,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
         if (resolutions[i].resolved_file == NULL) {
             for (int j = 0; j < stage->tracked_file->size; j++) {
                 file_t *file = file_t_dyn_array_get(stage->tracked_file, j);
-                if (file->file_path != NULL && (file->file_path, resolutions[i].file_name) == 0) {
+                if (file->file_path != NULL && strcmp(file->file_path, resolutions[i].file_name) == 0) {
                     file->state = REMOVED;
                     stage->not_changed = 0;
                 }
@@ -897,7 +897,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                 //files are taken from the merged branch
             for (int j = 0; j < stage->tracked_file->size; j++) {
                 file_t *file = file_t_dyn_array_get(stage->tracked_file, j);
-                if (file->file_path != NULL && (file->file_path, resolutions[i].file_name) == 0) {
+                if (file->file_path != NULL && strcmp(file->file_path, resolutions[i].file_name) == 0) {
 
                     file_t *file_in_stage = file_t_dyn_array_get(stage->tracked_file, j);
 
