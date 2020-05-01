@@ -129,7 +129,7 @@ int compare(const void* a, const void* b) {
 void set_commit_id(commit_t *commit) {
     int id = 0;
     // printf("Message in set commit id is:");
-    puts(commit->message);
+    // puts(commit->message);
 
     for (size_t i = 0; i < strlen(commit->message); i++) {
         id = (id + (unsigned char)commit->message[i]) % 1000;
