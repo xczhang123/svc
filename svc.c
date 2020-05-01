@@ -559,44 +559,44 @@ int svc_checkout(void *helper, char *branch_name) {
     if (!found) {
         return -1;
     }
-    commit_t *current_commit = commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index);
+    // commit_t *current_commit = commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index);
     svc->head = svc->branch[index];
     stage_t *stage = svc->stage;
     commit_t *commit = commit_t_dyn_array_get(svc->head->commit, svc->head->commit->last_commit_index);
 
-    printf("Before checkout, the stage is not changed: %d\n", stage->not_changed);
+    // printf("Before checkout, the stage is not changed: %d\n", stage->not_changed);
 
-    //Before checkout, check for any unexpected changes
-    for (int i = 0; i < current_commit->commited_file->size; i++) {
-        file_t *file = file_t_dyn_array_get(current_commit->commited_file, i);
-        FILE* fp;
-        if ((fp=fopen(file->file_path, "r")) == NULL) {
-            file->state = REMOVED;
-            svc->stage->not_changed = 0;
-            printf("staged changed here to REMOVED, filename is %s\n", file->file_path);
-        } else {
-            file->previous_hash = file->hash;
-            file->hash = hash_file(helper, file->file_path);
+    // //Before checkout, check for any unexpected changes
+    // for (int i = 0; i < current_commit->commited_file->size; i++) {
+    //     file_t *file = file_t_dyn_array_get(current_commit->commited_file, i);
+    //     FILE* fp;
+    //     if ((fp=fopen(file->file_path, "r")) == NULL) {
+    //         file->state = REMOVED;
+    //         svc->stage->not_changed = 0;
+    //         printf("staged changed here to REMOVED, filename is %s\n", file->file_path);
+    //     } else {
+    //         file->previous_hash = file->hash;
+    //         file->hash = hash_file(helper, file->file_path);
 
-            if (file->previous_hash != file->hash) {
+    //         if (file->previous_hash != file->hash) {
 
-                fseek(fp, 0, SEEK_END);
-                long file_length = ftell(fp);
-                fseek(fp, 0, SEEK_SET);
-                char file_contents[file_length+1];
-                file_contents[file_length] = '\0';
-                fread(file_contents, sizeof(char), file_length, fp);
-                fclose(fp);
+    //             fseek(fp, 0, SEEK_END);
+    //             long file_length = ftell(fp);
+    //             fseek(fp, 0, SEEK_SET);
+    //             char file_contents[file_length+1];
+    //             file_contents[file_length] = '\0';
+    //             fread(file_contents, sizeof(char), file_length, fp);
+    //             fclose(fp);
 
-                file->file_content = realloc(file->file_content,sizeof(char)*(file_length+1)); //Realloc file_content field
-                memcpy(file->file_content, file_contents, file_length+1);
+    //             file->file_content = realloc(file->file_content,sizeof(char)*(file_length+1)); //Realloc file_content field
+    //             memcpy(file->file_content, file_contents, file_length+1);
 
-                file->state = CHANGED;
-                stage->not_changed = 0; //As long as we found one change, it's atomic
-                printf("staged changed here to CHANGED\n");
-            }
-        }
-    }
+    //             file->state = CHANGED;
+    //             stage->not_changed = 0; //As long as we found one change, it's atomic
+    //             printf("staged changed here to CHANGED\n");
+    //         }
+    //     }
+    // }
 
     //If there are uncommitted changes
     if (svc->stage->not_changed == 0) {
