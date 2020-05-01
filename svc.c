@@ -255,11 +255,11 @@ char *svc_commit(void *helper, char *message) {
         file_t *new_file = file_t_dyn_array_get(commit->commited_file, i);
 
         // printf("new_file %s\n", new_file->file_path);
-
         int found = 0;
 
         for (int j = 0; j < stage->tracked_file->size; j++) {
             file_t *tracked_file = file_t_dyn_array_get(stage->tracked_file, j);
+            printf("In commit: The stage files name: %s hash is:%d\n", tracked_file->file_path, tracked_file->hash);
 
             if (new_file->file_path != NULL && tracked_file->file_path != NULL && strcmp(new_file->file_path, tracked_file->file_path) == 0) {
                 if (new_file->hash != tracked_file->hash) {
