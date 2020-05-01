@@ -941,7 +941,8 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     char message[14+50+1];
     sprintf(message, "%s", "Merged branch ");
     sprintf(message+14, "%s", branch_name);
-    // message[14+strlen(branch_name)] = '\0';
+    printf("length of the message is %ld\n", 14+strlen(branch_name));
+    message[14+strlen(branch_name)] = '\0';
     // char message[5] = "test";
 
     //Make the new commit from the stage
