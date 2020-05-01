@@ -152,15 +152,13 @@ void set_commit_id(commit_t *commit) {
         if (file->state != DEFAULT) {
             for (size_t j = 0; j < strlen(file->file_path); j++) {
                 id = (id * ((unsigned char)file->file_path[j] % 37)) % 15485863 + 1;
-                // printf("Middle id: %d\n", id);
             }
         }
-        // printf("id is: %d\n", id);
     }
 
     // printf("id is: %d\n", id);
-    // printf("Calculated commit id: %06x\n", id);
-    //snprintf(commit->commit_id, 7 , "%06x", id);
+    printf("Calculated commit id: %06x\n", id);
+    snprintf(commit->commit_id, 7 , "%06x", id);
     
 }
 
