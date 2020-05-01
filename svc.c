@@ -898,9 +898,9 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                 file_t *file = file_t_dyn_array_get(stage->tracked_file, j);
                 if (strcmp(file->file_path, resolutions[i].file_name) == 0) {
 
-                    file_t *file_in_stage = file_t_dyn_array_get(stage->tracked_file, j);
+                    // file_t *file_in_stage = file_t_dyn_array_get(stage->tracked_file, j);
 
-                    (void*)file_in_stage;
+                    // (void*)file_in_stage;
                     
                     FILE *fp = fopen(resolutions[i].file_name, "r");
 
