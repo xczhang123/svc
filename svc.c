@@ -946,7 +946,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
 
     //consturct the message
 
-    char message[14+50+1] = "Merged branch random_branch";
+    char message[28] = "Merged branch random_branch";
     // char prefix[15] = "Merged branch ";
     // sprintf(message, "%s", prefix);
     // sprintf(message+14, "%s", branch_name);
