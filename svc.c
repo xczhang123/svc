@@ -82,12 +82,12 @@ int hash_file(void *helper, char *file_path) {
 
     //Compute file name hash
     for (unsigned int i = 0; i < strlen(file_path); i++) {
-        hash = (hash + (unsigned int)file_path[i]) % 1000;
+        hash = (hash + (unsigned char)file_path[i]) % 1000;
     }
 
     //Compute file contents hash
     for (long i = 0; i < file_length; i++) {
-        hash = (hash + (unsigned int)file_contents[i]) % 2000000000;
+        hash = (hash + (unsigned char)file_contents[i]) % 2000000000;
     }
 
     return hash;
@@ -142,7 +142,7 @@ void set_commit_id(commit_t *commit) {
     //For unsigned byte in change.file_name
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
-        printf("file is: %s, file state is %d, file hash is %d\n",file->file_path, file->state, file->hash);
+        // printf("file is: %s, file state is %d, file hash is %d\n",file->file_path, file->state, file->hash);
         if (file->state == ADDED) {
             id += 376591;
         } else if (file->state == REMOVED) {
@@ -159,14 +159,14 @@ void set_commit_id(commit_t *commit) {
     }
 
     // printf("id is: %d\n", id);
-    printf("Calculated commit id: %06x\n", id);
+    // printf("Calculated commit id: %06x\n", id);
     snprintf(commit->commit_id, 7 , "%06x", id);
     
 }
 
 char *svc_commit(void *helper, char *message) {
 
-    printf("This commited message is %s\n", message);
+    // printf("This commited message is %s\n", message);
     
     stage_t *stage = (((struct svc*)helper)->stage);
     branch_t *branch = ((struct svc*)helper)->head;
@@ -232,7 +232,7 @@ char *svc_commit(void *helper, char *message) {
 
         stage->not_changed = 1;
 
-        printf("First commit id is %s\n", commit->commit_id);
+        // printf("First commit id is %s\n", commit->commit_id);
 
         return commit->commit_id;
     }
@@ -266,9 +266,9 @@ char *svc_commit(void *helper, char *message) {
             if (new_file->file_path != NULL && tracked_file->file_path != NULL && strcmp(new_file->file_path, tracked_file->file_path) == 0) {
                 if (new_file->hash != tracked_file->hash) {
                     // printf("filename: %s changed!", new_file->file_path);
-                    printf("original hash %d, new hash %d\n", new_file->hash, tracked_file->hash);
+                    // printf("original hash %d, new hash %d\n", new_file->hash, tracked_file->hash);
                     // printf("previous file content %s\n", new_file->file_content);;
-                    printf("The file %s state is changed to CHANGED\n", new_file->file_path);
+                    // printf("The file %s state is changed to CHANGED\n", new_file->file_path);
                     free(new_file->file_content);
                     new_file->file_content = strdup(tracked_file->file_content);
                     new_file->state = CHANGED;
@@ -331,7 +331,7 @@ char *svc_commit(void *helper, char *message) {
 //DONE
 void *get_commit(void *helper, char *commit_id) {
 
-    printf("We try to get the commit id %s\n", commit_id);
+    // printf("We try to get the commit id %s\n", commit_id);
 
     if (commit_id == NULL) {
         return NULL;
@@ -358,7 +358,7 @@ void *get_commit(void *helper, char *commit_id) {
 //DONE
 char **get_prev_commits(void *helper, void *commit, int *n_prev) {
 
-    printf("We try to get previous commit of %s\n", ((struct commit*)commit)->commit_id);
+    // printf("We try to get previous commit of %s\n", ((struct commit*)commit)->commit_id);
 
     (void)helper;
 
@@ -392,7 +392,7 @@ char **get_prev_commits(void *helper, void *commit, int *n_prev) {
 
 void print_commit(void *helper, char *commit_id) {
 
-    printf("We try to print the commit: %s\n", commit_id);
+    // printf("We try to print the commit: %s\n", commit_id);
 
     if (commit_id == NULL) {
         puts("Invalid commit id");
@@ -469,7 +469,7 @@ void print_commit(void *helper, char *commit_id) {
 //DONE
 int svc_branch(void *helper, char *branch_name) {
 
-    printf("We have created a new branch with name %s\n", branch_name);
+    // printf("We have created a new branch with name %s\n", branch_name);
 
     //If the branch name is NULL: return -1
     if (branch_name == NULL) {
@@ -538,7 +538,7 @@ int svc_branch(void *helper, char *branch_name) {
 int svc_checkout(void *helper, char *branch_name) {
 
 
-    printf("We checked out a branch name: %s\n", branch_name);
+    // printf("We checked out a branch name: %s\n", branch_name);
 
     if (branch_name == NULL) {
         return -1;
@@ -606,8 +606,8 @@ int svc_checkout(void *helper, char *branch_name) {
     for (int i = 0; i < commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
         if (file->state != REMOVED) {
-            printf("Restore the files name: %s hash is:%d\n", file->file_path, file->hash);
-            printf("The content wrote is :%s\n", file->file_content);
+            // printf("Restore the files name: %s hash is:%d\n", file->file_path, file->hash);
+            // printf("The content wrote is :%s\n", file->file_content);
             FILE *fp = fopen(file->file_path, "wb");
             fwrite(file->file_content, 1, strlen(file->file_content), fp); //Restore all changes
 
@@ -627,7 +627,7 @@ int svc_checkout(void *helper, char *branch_name) {
         if (file->state != REMOVED) {
             file_t_dyn_array_add(stage->tracked_file, file);
         }
-        printf("The staged file %s hash is %d\n", file->file_path,file->hash);
+        // printf("The staged file %s hash is %d\n", file->file_path,file->hash);
     }
 
     // //Set tracked files state to DEFAULT
@@ -643,7 +643,7 @@ int svc_checkout(void *helper, char *branch_name) {
 //DONE
 char **list_branches(void *helper, int *n_branches) {
 
-    printf("We listed the branches\n");
+    // printf("We listed the branches\n");
     
     if (n_branches == NULL) {
         return NULL;
@@ -667,7 +667,7 @@ char **list_branches(void *helper, int *n_branches) {
 //DONE
 int svc_add(void *helper, char *file_name) {
 
-    printf("This added file name is %s\n", file_name);
+    // printf("This added file name is %s\n", file_name);
 
     svc_t *svc = ((struct svc*)helper);
     branch_t *branch = svc->head;
@@ -752,7 +752,7 @@ int svc_add(void *helper, char *file_name) {
 //DONE
 int svc_rm(void *helper, char *file_name) {
 
-    printf("The removed file name is %s\n", file_name);
+    // printf("The removed file name is %s\n", file_name);
 
     svc_t *svc = ((struct svc*)helper);
     branch_t *branch = svc->head;
@@ -820,7 +820,7 @@ int svc_rm(void *helper, char *file_name) {
 
 int svc_reset(void *helper, char *commit_id) {
 
-    printf("We reset to the commit %s\n", commit_id);
+    // printf("We reset to the commit %s\n", commit_id);
 
     if (commit_id == NULL) {
         return -1;
@@ -899,7 +899,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     commit_t *current_commit = commit_t_dyn_array_get(current_branch->commit, current_branch->commit->last_commit_index);
     stage_t *stage = svc->stage;
 
-    printf("We are merging %s from %s!\n", svc->head->name,branch_name);
+    // printf("We are merging %s from %s!\n", svc->head->name,branch_name);
 
 
     int found = 0;
