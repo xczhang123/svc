@@ -267,7 +267,7 @@ char *svc_commit(void *helper, char *message) {
             if (new_file->file_path != NULL && tracked_file->file_path != NULL && strcmp(new_file->file_path, tracked_file->file_path) == 0) {
                 if (new_file->hash != tracked_file->hash) {
                     printf("filename: %s changed!", new_file->file_path);
-                    printf("original hash %d, new hash %d\n", tracked_file->hash, new_file->hash);
+                    printf("original hash %d, new hash %d\n", new_file->hash, tracked_file->hash);
                     free(new_file->file_content);
                     new_file->file_content = strdup(tracked_file->file_content);
                     new_file->state = CHANGED;
@@ -586,7 +586,8 @@ int svc_checkout(void *helper, char *branch_name) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
         if (file->state != REMOVED) {
             file_t_dyn_array_add(stage->tracked_file, file);
-        } 
+        }
+        printf("The staged file %s hash is %d\n", file->file_path,file->hash);
     }
 
     // //Set tracked files state to DEFAULT
