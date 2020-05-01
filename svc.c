@@ -573,6 +573,7 @@ int svc_checkout(void *helper, char *branch_name) {
         if ((fp=fopen(file->file_path, "r")) == NULL) {
             file->state = REMOVED;
             svc->stage->not_changed = 0;
+            printf("staged changed here to REMOVED\n");
         } else {
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
@@ -592,6 +593,7 @@ int svc_checkout(void *helper, char *branch_name) {
 
                 file->state = CHANGED;
                 stage->not_changed = 0; //As long as we found one change, it's atomic
+                printf("staged changed here to CHANGED\n");
             }
         }
     }
