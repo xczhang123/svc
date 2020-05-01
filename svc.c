@@ -392,7 +392,6 @@ void print_commit(void *helper, char *commit_id) {
 
     int found = 0;
     int index = -1;
-    int another_path = 0;
     //Find in all branches
     for (int i = 0; i < svc->size; i++) {
         branch = svc->branch[i];
