@@ -264,16 +264,13 @@ char *svc_commit(void *helper, char *message) {
         for (int j = 0; j < stage->tracked_file->size; j++) {
             file_t *tracked_file = file_t_dyn_array_get(stage->tracked_file, j);
 
-            // printf("tracked_file %s\n", tracked_file->file_path);
-            // printf("path is %d\n", strcmp(new_file->file_path, tracked_file->file_path));
-            // printf("new_file state %d\n", new_file->state);
-            // printf("%d\n", new_file->hash == tracked_file->hash );
-
             if (new_file->file_path != NULL && tracked_file->file_path != NULL && strcmp(new_file->file_path, tracked_file->file_path) == 0) {
                 if (new_file->hash != tracked_file->hash) {
+                    printf("filename: %s, Original content:%s", new_file->file_path, new_file->file_content);
                     free(new_file->file_content);
                     new_file->file_content = strdup(tracked_file->file_content);
                     new_file->state = CHANGED;
+                    printf("filename: %s, new content:%s", new_file->file_path, new_file->file_content);
                     new_file->previous_hash = new_file->hash;
                     new_file->hash = tracked_file->hash;
                 }
