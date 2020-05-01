@@ -159,7 +159,7 @@ void set_commit_id(commit_t *commit) {
     }
 
     // printf("id is: %d\n", id);
-    // printf("Calculated commit id: %06x\n", id);
+    printf("Calculated commit id: %06x\n", id);
     snprintf(commit->commit_id, 7 , "%06x", id);
     
 }
@@ -331,7 +331,7 @@ char *svc_commit(void *helper, char *message) {
 //DONE
 void *get_commit(void *helper, char *commit_id) {
 
-    // printf("We try to get the commit id %s\n", commit_id);
+    printf("We try to get the commit id %s\n", commit_id);
 
     if (commit_id == NULL) {
         return NULL;
@@ -358,7 +358,7 @@ void *get_commit(void *helper, char *commit_id) {
 //DONE
 char **get_prev_commits(void *helper, void *commit, int *n_prev) {
 
-    // printf("We try to get previous commit of %s\n", ((struct commit*)commit)->commit_id);
+    printf("We try to get previous commit of %s\n", ((struct commit*)commit)->commit_id);
 
     (void)helper;
 
@@ -392,7 +392,7 @@ char **get_prev_commits(void *helper, void *commit, int *n_prev) {
 
 void print_commit(void *helper, char *commit_id) {
 
-    printf("We try to print the commit\n");
+    printf("We try to print the commit: %s\n", commit_id);
 
     if (commit_id == NULL) {
         puts("Invalid commit id");
@@ -537,7 +537,7 @@ int svc_branch(void *helper, char *branch_name) {
 
 int svc_checkout(void *helper, char *branch_name) {
 
-    printf("We checked out a branch %s\n", branch_name);
+    printf("We checked out a branch name: %s\n", branch_name);
 
     if (branch_name == NULL) {
         return -1;
@@ -714,7 +714,7 @@ int svc_add(void *helper, char *file_name) {
 //DONE
 int svc_rm(void *helper, char *file_name) {
 
-    printf("This removed file name is %s\n", file_name);
+    printf("The removed file name is %s\n", file_name);
 
     svc_t *svc = ((struct svc*)helper);
     branch_t *branch = svc->head;
@@ -850,8 +850,6 @@ int svc_reset(void *helper, char *commit_id) {
 
 char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions, int n_resolutions) {
 
-    printf("We are merging now!\n");
-
     if (branch_name == NULL) {
         printf("Invalid branch name\n");
         return NULL;
@@ -861,6 +859,9 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     branch_t *current_branch = svc->head;
     commit_t *current_commit = commit_t_dyn_array_get(current_branch->commit, current_branch->commit->last_commit_index);
     stage_t *stage = svc->stage;
+
+    printf("We are merging %s from %s!\n", svc->head->name,branch_name);
+
 
     int found = 0;
     int index = -1;
