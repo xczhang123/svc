@@ -231,6 +231,13 @@ int example2() {
     remove("COMP2017/svc.c");
     remove("COMP2017/svc.h");
 
+    fp = fopen("c.a", "w");
+    fputs("!<arch>\n/               1554401209  0     0     0       1122      `\n", fp);
+    fclose(fp);
+    printf("%d\n",hash_file(helper, "c.a"));
+
+    remove("c.a");
+
     cleanup(helper);
     return 1;
 }

@@ -64,7 +64,7 @@ int hash_file(void *helper, char *file_path) {
 
     FILE *fp;
     //File not found
-    if ((fp = fopen(file_path, "r")) == NULL) {
+    if ((fp = fopen(file_path, "rb")) == NULL) {
         return -2;
     }
 
@@ -175,7 +175,7 @@ char *svc_commit(void *helper, char *message) {
     for (int i = 0; i < stage->tracked_file->size; i++) {
         file_t *file = file_t_dyn_array_get(stage->tracked_file, i);
         FILE *fp;
-        if ((fp=fopen(file->file_path, "r")) == NULL) {
+        if ((fp=fopen(file->file_path, "rb")) == NULL) {
             // printf("Manual removal detected! file name is %s\n", file->file_path);
             //User has manually deleted the file from the file system
             file_t_dyn_array_delete_file(stage->tracked_file, file);
@@ -185,7 +185,7 @@ char *svc_commit(void *helper, char *message) {
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
 
-            printf("The read coontent is %s\n", file->file_content);
+            printf("The read coontent is %s:\n", file->file_content);
 
             if (file->previous_hash != file->hash) {
 
@@ -607,7 +607,7 @@ int svc_checkout(void *helper, char *branch_name) {
         file_t *file = file_t_dyn_array_get(commit->commited_file, i);
         if (file->state != REMOVED) {
             printf("Restore the files name: %s hash is:%d\n", file->file_path, file->hash);
-            printf("The content wrote is : %s\n", file->file_content);
+            printf("The content wrote is :%s\n", file->file_content);
             FILE *fp = fopen(file->file_path, "w");
             fputs(file->file_content, fp); //Restore all changes
             fclose(fp);
@@ -688,7 +688,7 @@ int svc_add(void *helper, char *file_name) {
 
     //If the file does not exists: return -3
     FILE* fp;
-    if ((fp=fopen(file_name, "r")) == NULL) {
+    if ((fp=fopen(file_name, "rb")) == NULL) {
         return -3;
     }
 
@@ -781,7 +781,7 @@ int svc_rm(void *helper, char *file_name) {
 
     //If the file does not exists: return -3
     FILE* fp;
-    if ((fp=fopen(file_name, "r")) == NULL) {
+    if ((fp=fopen(file_name, "rb")) == NULL) {
         return -3;
     }
 
@@ -926,7 +926,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     for (int i = 0; i < current_commit->commited_file->size; i++) {
         file_t *file = file_t_dyn_array_get(current_commit->commited_file, i);
         FILE* fp;
-        if ((fp=fopen(file->file_path, "r")) == NULL) {
+        if ((fp=fopen(file->file_path, "rb")) == NULL) {
             file->state = REMOVED;
             svc->stage->not_changed = 0;
         } else {
@@ -995,6 +995,11 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
         }
     }
 
+
+
+
+
+
     //Now stage has all the files required that is either ADDED or DEFAULT
 
     //Remove or replace files with those in the resolutions
@@ -1016,7 +1021,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
 
                     file_t *file_in_stage = file_t_dyn_array_get(stage->tracked_file, j);
 
-                    FILE *fp = fopen(resolutions[i].file_name, "r");
+                    FILE *fp = fopen(resolutions[i].file_name, "rb");
 
                     fseek(fp, 0, SEEK_END);
                     long file_length = ftell(fp);
@@ -1070,6 +1075,16 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     commit_t *new_commit = commit_t_dyn_array_get(current_branch->commit, current_branch->commit->last_commit_index);
     set_commit_id(new_commit);
 
+
+    //Restore all changes in merged branch
+    for (int i = 0; i < merged_branch->commit->size; i++) {
+        file_t *file = file_t_dyn_array_get(merged_branch_commit->commited_file, i);
+        if (file->state != REMOVED) {
+            FILE *fp = fopen(file->file_path, "w");
+            fputs(file->file_content, fp);
+            fclose(fp);
+        }
+    }
     //Reset the file state in the stage to DEFAULT
     stage->not_changed = 1;
 
