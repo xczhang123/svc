@@ -623,7 +623,7 @@ int svc_checkout(void *helper, char *branch_name) {
         if (file->state != REMOVED) {
             file_t_dyn_array_add(stage->tracked_file, file);
         }
-        // printf("The staged file %s hash is %d\n", file->file_path,file->hash);
+        printf("The staged file %s hash is %d\n", file->file_path,file->hash);
     }
 
     // //Set tracked files state to DEFAULT
