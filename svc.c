@@ -82,12 +82,12 @@ int hash_file(void *helper, char *file_path) {
 
     //Compute file name hash
     for (unsigned int i = 0; i < strlen(file_path); i++) {
-        hash = (hash + file_path[i]) % 1000;
+        hash = (hash + (unsigned char)file_path[i]) % 1000;
     }
 
     //Compute file contents hash
     for (long i = 0; i < file_length; i++) {
-        hash = (hash + file_contents[i]) % 2000000000;
+        hash = (hash + (unsigned char)file_contents[i]) % 2000000000;
     }
 
     return hash;
@@ -181,6 +181,7 @@ char *svc_commit(void *helper, char *message) {
             file_t_dyn_array_delete_file(stage->tracked_file, file);
             stage->not_changed = 0; //there must be some changes
             i--;
+            fclose(fp);
         } else {//We recalculate the hash value for each file
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
@@ -814,6 +815,7 @@ int svc_rm(void *helper, char *file_name) {
             }
         }
     }
+    fclose(fp);
     return file_to_be_deleted_hash;
 }
 
@@ -930,6 +932,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
         if ((fp=fopen(file->file_path, "rb")) == NULL) {
             file->state = REMOVED;
             svc->stage->not_changed = 0;
+            fclose(fp);
         } else {
             file->previous_hash = file->hash;
             file->hash = hash_file(helper, file->file_path);
