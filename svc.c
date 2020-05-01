@@ -915,10 +915,12 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
 
                     free(file_in_stage->file_content);
                     file_in_stage->file_content = strdup(file_contents);
-                    // // free(file_in_stage->file_path);
-                    // // file_in_stage->file_path = strdup(resolutions[i].resolved_file);
-                    // file_in_stage->previous_hash = file_in_stage->hash;
-                    // file_in_stage->hash = hash_file(helper, file_in_stage->file_path);
+                    fp = fopen(file_in_stage->file_path, "w");//Write the content into previous files
+                    fputs(file_contents, fp);
+                    fclose(fp);
+                    
+                    file_in_stage->previous_hash = file_in_stage->hash;
+                    file_in_stage->hash = hash_file(helper, file_in_stage->file_path);
 
                     // if (file_in_stage->previous_hash != file_in_stage->hash) {
                     //     file_in_stage->state = CHANGED;
