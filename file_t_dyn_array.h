@@ -17,7 +17,7 @@
 typedef struct file {
     int state;
     char *file_path;
-    char *file_content;
+    unsigned char *file_content;
     int hash;
     int previous_hash;
 } file_t;
