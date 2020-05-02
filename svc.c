@@ -270,7 +270,7 @@ char *svc_commit(void *helper, char *message) {
                     // printf("previous file content %s\n", new_file->file_content);;
                     // printf("The file %s state is changed to CHANGED\n", new_file->file_path);
                     free(new_file->file_content);
-                    new_file->file_content = strdup(tracked_file->file_content);
+                    new_file->file_content = (unsigned char*)strdup((const char*)tracked_file->file_content);
                     new_file->state = CHANGED;
                     new_file->previous_hash = new_file->hash;
                     new_file->hash = tracked_file->hash;
@@ -609,7 +609,7 @@ int svc_checkout(void *helper, char *branch_name) {
             // printf("Restore the files name: %s hash is:%d\n", file->file_path, file->hash);
             // printf("The content wrote is :%s\n", file->file_content);
             FILE *fp = fopen(file->file_path, "wb");
-            fwrite(file->file_content, 1, strlen(file->file_content), fp); //Restore all changes
+            fwrite(file->file_content, 1, strlen((const char*)file->file_content), fp); //Restore all changes
 
             fclose(fp);
         }
@@ -858,7 +858,7 @@ int svc_reset(void *helper, char *commit_id) {
         file_t *file = file_t_dyn_array_get(new_commit->commited_file, i);
         if (file->state != REMOVED) {
             FILE *fp = fopen(file->file_path, "wb");
-            fwrite(file->file_content, 1, strlen(file->file_content), fp);//Restore all changes
+            fwrite(file->file_content, 1, strlen((const char*)file->file_content), fp);//Restore all changes
             fclose(fp);
         }
     }
@@ -1036,9 +1036,9 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                     // printf("file content is %s\n", file_contents);
 
                     free(file_in_stage->file_content);
-                    file_in_stage->file_content = strdup(file_contents);
+                    file_in_stage->file_content = (unsigned char*)strdup((const char*)file_contents);
                     fp = fopen(file_in_stage->file_path, "wb");//Write the content into previous files
-                    fwrite(file_in_stage->file_content, 1, strlen(file_in_stage->file_content), fp);
+                    fwrite(file_in_stage->file_content, 1, strlen((const char*)file_in_stage->file_content), fp);
                     fclose(fp);
                     
                     file_in_stage->previous_hash = file_in_stage->hash;
@@ -1078,15 +1078,15 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
     set_commit_id(new_commit);
 
 
-    //Restore all changes in merged branch
-    for (int i = 0; i < merged_branch->commit->size; i++) {
-        file_t *file = file_t_dyn_array_get(merged_branch_commit->commited_file, i);
-        if (file->state != REMOVED) {
-            FILE *fp = fopen(file->file_path, "wb");
-            fwrite(file->file_content, 1, strlen(file->file_content), fp);
-            fclose(fp);
-        }
-    }
+    // //Restore all changes in merged branch
+    // for (int i = 0; i < merged_branch->commit->size; i++) {
+    //     file_t *file = file_t_dyn_array_get(merged_branch_commit->commited_file, i);
+    //     if (file->state != REMOVED) {
+    //         FILE *fp = fopen(file->file_path, "wb");
+    //         fwrite(file->file_content, 1, strlen(file->file_content), fp);
+    //         fclose(fp);
+    //     }
+    // }
     //Reset the file state in the stage to DEFAULT
     stage->not_changed = 1;
 
