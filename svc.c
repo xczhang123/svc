@@ -72,7 +72,7 @@ int hash_file(void *helper, char *file_path) {
     fseek(fp, 0, SEEK_END);
     long file_length = ftell(fp);
     fseek(fp, 0, SEEK_SET);
-    char file_contents[file_length+1];
+    unsigned char file_contents[file_length+1];
     fread(file_contents, sizeof(char), file_length, fp);
     file_contents[file_length] = '\0';
     fclose(fp);
@@ -192,7 +192,7 @@ char *svc_commit(void *helper, char *message) {
                 fseek(fp, 0, SEEK_END);
                 long file_length = ftell(fp);
                 fseek(fp, 0, SEEK_SET);
-                char file_contents[file_length+1];
+                unsigned char file_contents[file_length+1];
                 file_contents[file_length] = '\0';
                 fread(file_contents, sizeof(char), file_length, fp);
                 fclose(fp);
@@ -700,7 +700,7 @@ int svc_add(void *helper, char *file_name) {
     fseek(fp, 0, SEEK_END);
     long file_length = ftell(fp);
     fseek(fp, 0, SEEK_SET);
-    char file_contents[file_length+1];
+    unsigned char file_contents[file_length+1];
     file_contents[file_length] = '\0';
     fread(file_contents, sizeof(char), file_length, fp);
     fclose(fp);
@@ -940,7 +940,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                 fseek(fp, 0, SEEK_END);
                 long file_length = ftell(fp);
                 fseek(fp, 0, SEEK_SET);
-                char file_contents[file_length+1];
+                unsigned char file_contents[file_length+1];
                 file_contents[file_length] = '\0';
                 fread(file_contents, sizeof(char), file_length, fp);
                 fclose(fp);
@@ -1028,7 +1028,7 @@ char *svc_merge(void *helper, char *branch_name, struct resolution *resolutions,
                     fseek(fp, 0, SEEK_END);
                     long file_length = ftell(fp);
                     fseek(fp, 0, SEEK_SET);
-                    char file_contents[file_length+1];
+                    unsigned char file_contents[file_length+1];
                     fread(file_contents, sizeof(char), file_length, fp);
                     file_contents[file_length] = '\0';
                     fclose(fp);
